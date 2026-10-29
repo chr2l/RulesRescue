@@ -300,17 +300,33 @@ async function load(addr) {
     const r = await fetch("/api/cards?address=" + addr);
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || r.status);
-    items = j.items.map((d, i) => ({ ...d, i }));
+    const held = j.items;
     $("dl").href = "/api/cards?address=" + addr + "&format=ids";
     const deployed = j.deployed ? "déployé" : "jamais déployé (normal pour un compte de migration Rules)";
-    $("status").innerHTML = items.length
+    $("status").innerHTML = held.length
       ? `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`
       : "";
-    if (!items.length) {
+    if (!held.length) {
+      items = [];
       $("empty").hidden = false;
       $("empty").innerHTML = `<b>Aucune carte Rules sur cette adresse.</b> Si c'est ton ancien compte Rules, ouvre-le sur <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> et cherche un gros transfert de cartes fin 2023 : l'adresse de destination est celle de ton wallet de migration. Le <a href="#tuto">guide</a> explique la marche à suivre.`;
       return;
     }
+    const metaAll = {};
+    for (let k = 0; k < held.length; k += 40) {
+      $("status").textContent = `Lecture des cartes… ${Math.min(k + 40, held.length)} / ${held.length}`;
+      const part = held.slice(k, k + 40).map(x => x.id);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try { Object.assign(metaAll, await (await fetch("/api/meta?ids=" + part.join(","))).json()); break; }
+        catch (e) { await new Promise(r => setTimeout(r, 1500)); }
+      }
+    }
+    items = held.map((x, i) => {
+      const m = metaAll[x.id];
+      const serial = Number(BigInt(x.id) >> 128n);
+      return m ? { ...m, q: x.q, i } : { id: x.id, a: "Carte non identifiée", r: "C", n: serial, s: 0, q: x.q, i };
+    });
+    $("status").innerHTML = `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`;
     stats(); fillArtists(); $("bar").hidden = false; render();
   } catch (e) {
     $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";

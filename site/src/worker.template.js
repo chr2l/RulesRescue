@@ -28,7 +28,7 @@ async function holdings(addr) {
   const me = BigInt(addr);
   let path = `/nft-transfers?contract_address=${addr}&type=erc1155&limit=100`, pages = 0;
   const bal = new Map();
-  while (path && pages++ < 60) {
+  while (path && pages++ < 40) {
     const j = await vget(path, 300);
     for (const t of j.items || []) {
       if (BigInt(t.nftContractAddress) !== BigInt(CONTRACT)) continue;
@@ -53,18 +53,8 @@ async function meta(id) {
   };
 }
 
-async function cards(addr) {
-  const h = await holdings(addr);
-  const out = [];
-  for (let i = 0; i < h.length; i += 12) {
-    const part = await Promise.all(h.slice(i, i + 12).map(async ([id, q]) => {
-      try { return { ...(await meta(id)), q }; } catch { return { id, a: "Carte #" + id.slice(0, 8), r: "C", n: 0, s: 1, q, img: null }; }
-    }));
-    out.push(...part);
-  }
-  let deployed = false;
-  try { const c = await vget(`/contract/${addr}`, 300); deployed = !c.error; } catch {}
-  return { address: addr, deployed, items: out };
+async function deployedAt(addr) {
+  try { const c = await vget(`/contract/${addr}`, 300); return !c.error; } catch { return false; }
 }
 
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -83,12 +73,22 @@ export default {
       if (u.pathname === "/api/cards") {
         const raw = u.searchParams.get("address") || "";
         if (!/^0x[0-9a-fA-F]{1,64}$/.test(raw)) return json({ error: "adresse invalide" }, 400);
-        const r = await cards(norm(raw));
+        const addr = norm(raw), h = await holdings(addr);
         if (u.searchParams.get("format") === "ids") {
-          return new Response(JSON.stringify(r.items.map(d => ({ id: d.id, q: d.q, nom: d.a }))), {
+          return new Response(JSON.stringify(h.map(([id, q]) => ({ id, q }))), {
             headers: { "content-type": "application/json", "content-disposition": "attachment; filename=cartes.json" } });
         }
-        return json({ ...r, items: r.items.map(({ img, ...d }) => d) });
+        return json({ address: addr, deployed: await deployedAt(addr), items: h.map(([id, q]) => ({ id, q })) });
+      }
+      if (u.pathname === "/api/meta") {
+        const ids = (u.searchParams.get("ids") || "").split(",").filter(x => /^\d{1,80}$/.test(x)).slice(0, 40);
+        const out = {};
+        for (let i = 0; i < ids.length; i += 5) {
+          await Promise.all(ids.slice(i, i + 5).map(async id => {
+            try { const { img, ...m } = await meta(id); out[id] = m; } catch { out[id] = null; }
+          }));
+        }
+        return json(out);
       }
       if (u.pathname.startsWith("/img/")) {
         const id = u.pathname.slice(5);
