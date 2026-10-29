@@ -4,8 +4,11 @@ const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77c
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36";
 const H = { "user-agent": UA, accept: "application/json", referer: "https://voyager.online/" };
 const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W" };
-const HTML = __HTML__;
-const SCRIPT = __SCRIPT__;
+// Le contenu (page + script) vit dans KV (binding SITE), mis à jour par /admin (jeton ADMIN_TOKEN).
+const ADMIN_PAGE = `<!doctype html><meta charset="utf-8"><title>Mise à jour</title><body style="font:15px system-ui;padding:24px"><p id="s">Envoi…</p><script>
+(async()=>{const s=document.getElementById("s");try{const raw=decodeURIComponent(escape(atob(location.hash.slice(1))));const t=new URLSearchParams(location.search).get("t");
+const r=await fetch("/admin/put",{method:"POST",headers:{"x-admin-token":t,"content-type":"application/json"},body:raw});s.textContent=r.ok?"Site mis à jour ("+(await r.text())+")":"Erreur "+r.status+" "+await r.text();
+history.replaceState(null,"","/admin");}catch(e){s.textContent="Erreur : "+e.message}})();<\/script>`;
 
 const norm = a => "0x" + BigInt(a).toString(16).padStart(64, "0");
 
@@ -70,6 +73,13 @@ export default {
   async fetch(req, env, ctx) {
     const u = new URL(req.url);
     try {
+      if (u.pathname === "/admin") return new Response(ADMIN_PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "referrer-policy": "no-referrer" } });
+      if (u.pathname === "/admin/put" && req.method === "POST") {
+        if (!env.ADMIN_TOKEN || req.headers.get("x-admin-token") !== env.ADMIN_TOKEN) return new Response("forbidden", { status: 403 });
+        const b = await req.json(); const done = [];
+        for (const k of ["html", "script"]) if (typeof b[k] === "string" && b[k].length > 100) { await env.SITE.put(k, b[k]); done.push(k + " " + b[k].length); }
+        return new Response(done.join(", ") || "rien");
+      }
       if (u.pathname === "/api/cards") {
         const raw = u.searchParams.get("address") || "";
         if (!/^0x[0-9a-fA-F]{1,64}$/.test(raw)) return json({ error: "adresse invalide" }, 400);
@@ -88,9 +98,9 @@ export default {
         const r = await fetch(m.img, { headers: { "user-agent": UA }, cf: { cacheTtl: 86400 * 30, cacheEverything: true } });
         return new Response(r.body, { status: r.status, headers: { "content-type": r.headers.get("content-type") || "image/jpeg", "cache-control": "public, max-age=2592000" } });
       }
-      if (u.pathname === "/rules_rescue.py") return new Response(SCRIPT, { headers: { "content-type": "text/x-python; charset=utf-8", "content-disposition": "attachment; filename=rules_rescue.py" } });
+      if (u.pathname === "/rules_rescue.py") return new Response(await env.SITE.get("script") || "# indisponible", { headers: { "content-type": "text/x-python; charset=utf-8", "content-disposition": "attachment; filename=rules_rescue.py" } });
       if (u.pathname === "/robots.txt") return new Response("User-agent: *\nAllow: /\n", { headers: { "content-type": "text/plain" } });
-      if (u.pathname === "/" || u.pathname === "/index.html") return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+      if (u.pathname === "/" || u.pathname === "/index.html") return new Response(await env.SITE.get("html") || "Site en cours de mise à jour.", { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
       return new Response("Not found", { status: 404 });
     } catch (e) {
       return json({ error: String(e.message || e) }, 502);
