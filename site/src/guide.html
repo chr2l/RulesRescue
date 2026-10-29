@@ -1,0 +1,80 @@
+<section class="view wrap doc" data-view="tuto" hidden>
+  <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Explorer</a> : colle une adresse et vois si des cartes y sont.</p>
+  <p class="eyebrow">Guide · ancien utilisateur Rules</p>
+  <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
+  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une heure, et quelques centimes de frais réseau à la fin.</p>
+
+  <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) ne se colle sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te la demandera. Tout ce qui suit se fait en local sur ta machine.</div>
+
+  <ol class="steps">
+    <li>
+      <h3>Comprendre où sont parties tes cartes</h3>
+      <p>Fin 2023, Rules a proposé une migration : on connectait une extension <b>Argent X</b> ou <b>Braavos</b>, et le site transférait les cartes vers le compte actif de cette extension. Le code public de l'interface (dépôt <code>ruleslabs/interface</code>, fichier <code>MigrateCollectionModal/Cards.tsx</code>) le confirme : la destination est l'adresse du wallet connecté, sans saisie manuelle possible.</p>
+      <p>Donc tes cartes sont sur l'adresse Starknet de ton extension de l'époque, pas sur ton compte Rules, ni sur MetaMask, ni sur Argent Vault (qui est un wallet Ethereum).</p>
+    </li>
+    <li>
+      <h3>Retrouver l'adresse qui détient les cartes</h3>
+      <p>Pars d'une adresse que tu connais (MetaMask, ancien compte Rules) et remonte la piste sur l'explorateur <a href="https://voyager.online" target="_blank" rel="noopener">voyager.online</a> :</p>
+      <ul>
+        <li>Une adresse MetaMask a souvent un dépôt <em>StarkGate</em> vers Starknet. Le champ <code>l2Recipient</code> de cette transaction sur Etherscan donne ton ancien compte Rules.</li>
+        <li>Sur Voyager, ouvre ce compte, onglet <em>Transactions</em> : un gros <code>batch_transfer_from</code> fin 2023 ou en 2024 montre vers quelle adresse les cartes sont parties.</li>
+        <li>Sur cette adresse de destination, les cartes du contrat <code>0x05b4…f70f</code> (le contrat des cartes Rules) apparaissent dans les transferts NFT.</li>
+      </ul>
+      <p>Si Voyager affiche « Contract not found » pour cette adresse, c'est normal : le compte a reçu les cartes mais n'a jamais été <b>déployé</b>.</p>
+    </li>
+    <li>
+      <h3>Comprendre pourquoi ton wallet ne l'affiche pas</h3>
+      <p>Une adresse Starknet est calculée à partir de ta clé <b>et</b> de la version du contrat de compte. En novembre 2023, Argent X utilisait la version 0.3.0. Ready (le nouveau nom d'Argent) utilise aujourd'hui une version plus récente. Avec la même seed, il calcule donc une autre adresse et ne retrouve pas tout seul l'ancienne si elle n'a jamais servi.</p>
+      <table class="mini">
+        <thead><tr><th>Même seed, compte n°0</th><th>Adresse</th></tr></thead>
+        <tbody>
+          <tr><td>Argent X v0.3.0 (fin 2023)</td><td>celle qui détient les cartes</td></tr>
+          <tr><td>Ready v0.4.0 (aujourd'hui)</td><td>celle que l'app affiche</td></tr>
+        </tbody>
+      </table>
+      <p>Braavos et MetaMask ne peuvent pas ouvrir ce compte : ils calculent leurs adresses autrement.</p>
+    </li>
+    <li>
+      <h3>Retrouver la bonne seed</h3>
+      <p>La seed est celle de l'extension utilisée pendant la migration. Si tu utilises encore Ready sur le même ordinateur, c'est souvent la même. Sinon, cherche dans tes notes (Google Keep, Notes), tes captures d'écran, un papier, un gestionnaire de mots de passe. Une vraie seed fait 12 ou 24 mots de la <a href="https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt" target="_blank" rel="noopener">liste BIP39</a> et a une somme de contrôle valide.</p>
+      <p>Pour vérifier sans risque, restaure la seed dans un <b>profil de navigateur vierge</b> (jamais via « Mot de passe oublié » dans ton wallet actuel, qui l'effacerait) et compare les adresses. Le script de l'onglet <a href="#outil">Outil</a> fait ce test hors ligne, sur toutes les versions d'Argent connues.</p>
+    </li>
+    <li>
+      <h3>Prévenir le support Ready</h3>
+      <p>Le support passe par le formulaire de <a href="https://help.ready.co/hc/en-us/requests/new" target="_blank" rel="noopener">help.ready.co</a> (choisir « Ready X (previously Argent X) »). Donne l'adresse des cartes, la version du compte (0.3.0), l'index (souvent 0) et ton adresse Ready actuelle. Le formulaire demande ensuite de confirmer ton email avant d'envoyer la demande.</p>
+    </li>
+    <li>
+      <h3>Déployer le compte et rapatrier les cartes</h3>
+      <p>Si le support ne règle pas le problème, le script de l'onglet <a href="#outil">Outil</a> le fait en trois temps : <code>find</code> retrouve le compte à partir de la seed, <code>check</code> vérifie son état sur la chaîne, <code>migrate</code> simule le déploiement et le transfert, et n'envoie rien tant que tu n'ajoutes pas <code>--execute</code> et que tu ne tapes pas OUI.</p>
+      <p>Il faut un peu de <b>STRK</b> sur l'adresse des cartes pour payer les frais : la simulation donne le montant exact, en général bien moins d'un euro.</p>
+    </li>
+    <li>
+      <h3>Sécuriser ensuite</h3>
+      <ul>
+        <li>Envoie les cartes vers un <b>wallet neuf</b> (Braavos ou Ready) dont la seed n'a jamais été tapée ailleurs que sur papier.</li>
+        <li>Supprime toute seed stockée en clair dans le cloud (notes, mails, captures).</li>
+        <li>Méfie-toi des messages qui proposent de « récupérer tes NFT Rules » : c'est presque toujours une arnaque.</li>
+      </ul>
+    </li>
+  </ol>
+  <p class="note">Statut : les étapes 1 à 5 ont été suivies jusqu'au bout. L'étape 6 a été simulée sans envoi. Une simulation sur Starknet mainnet (octobre 2026) confirme qu'un compte v0.3.0 se déploie encore et que le transfert passe : environ 0,03 STRK pour le déploiement et 0,06 STRK par lot de cartes.</p>
+</section>
+
+<section class="view wrap doc" data-view="outil" hidden>
+  <p class="eyebrow">Outil · Python, en local</p>
+  <h2 class="doc-h">rules_rescue.py</h2>
+  <p class="lede">Retrouve l'ancien compte Argent X qui détient tes cartes, puis simule et exécute leur transfert vers un wallet de ton choix. La seed est saisie de façon masquée, n'est jamais écrite sur le disque et ne part pas sur le réseau.</p>
+  <div class="cmds">
+    <pre><code>pip install starknet-py
+python rules_rescue.py find    --target 0xADRESSE_DES_CARTES
+python rules_rescue.py check   --target 0xADRESSE_DES_CARTES
+python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json
+python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json --execute</code></pre>
+  </div>
+  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a></p><p><code>cartes.json</code> est la liste des cartes à transférer, au format <code>[{"id": "…", "q": 1}]</code>.</p>
+  
+  <p>Ta propre liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Explorer</a>, une fois ton adresse affichée (bouton « cartes.json »).</p>
+</section>
+
+
+

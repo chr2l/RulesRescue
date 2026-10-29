@@ -1,0 +1,408 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Rules Rescue</title><meta name="description" content="Retrouver et récupérer ses cartes Rules (rules.art) sur Starknet après la fermeture du site."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Inconsolata:wght@500;700&display=swap"><style>
+/* Layout: classeur de collection — bandeau compteur, rail de filtres collant, grille de cartes au format 0.63 */
+:root {
+  --bg: #0d1114;
+  --surface: #191b1d;
+  --line: #33373b;
+  --fg: #f7f7f7;
+  --muted: #828585;
+  --accent: #9f04dc;
+  --accent-soft: rgba(159, 4, 220, .16);
+  --holo: #56c8fe;
+  --plat: #e7e7e7;
+  --hallo: #e0672a;
+  --chip-fg: #f7f7f7;
+  --display: "Archivo Black", "Arial Black", Impact, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Inconsolata", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #eceeef; --surface: #ffffff; --line: #cfd3d6; --fg: #0d1114; --muted: #5d6266;
+    --accent: #8d04c3; --accent-soft: rgba(141, 4, 195, .1); --holo: #0a86c2; --plat: #6d7378; --hallo: #b8471a; --chip-fg: #ffffff;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #eceeef; --surface: #ffffff; --line: #cfd3d6; --fg: #0d1114; --muted: #5d6266;
+  --accent: #8d04c3; --accent-soft: rgba(141, 4, 195, .1); --holo: #0a86c2; --plat: #6d7378; --hallo: #b8471a; --chip-fg: #ffffff;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Bandeau */
+header { padding-block: 40px 24px; display: grid; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.brand svg { width: 34px; height: 34px; flex: none; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 8vw, 92px); line-height: .9; margin: 0; letter-spacing: -.01em; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.counter { display: flex; flex-wrap: wrap; gap: 8px; }
+.stat { border: 1px solid var(--line); background: var(--surface); padding: 10px 14px; display: grid; gap: 2px; min-width: 110px; }
+.stat b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.wallet { font-family: var(--mono); font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.wallet a { color: inherit; }
+
+/* Filtres */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-block: 1px solid var(--line); }
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-block: 12px; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button { font: 600 13px/1 var(--body); color: var(--fg); background: transparent; border: 1px solid var(--line); padding: 8px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--chip-fg); }
+.seg button:hover { border-color: var(--accent); }
+select, input[type="search"] { font: 500 14px/1 var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; height: 34px; }
+input[type="search"] { flex: 1 1 180px; min-width: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.count { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Grille */
+main { padding-block: 24px 64px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
+.card { display: grid; gap: 8px; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.frame { position: relative; aspect-ratio: 214 / 300; max-width: 100%; overflow: hidden; background: var(--surface); border-radius: 6px; transition: transform .25s ease; }
+.frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.card:hover .frame, .card:focus-visible .frame { transform: translateY(-4px) rotate(-1deg); }
+.frame.holo::after, .frame.plat::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: .0; transition: opacity .3s; background: linear-gradient(115deg, transparent 20%, rgba(255,0,200,.55) 36%, rgba(0,230,255,.55) 48%, rgba(255,255,120,.5) 60%, transparent 76%); background-size: 250% 250%; background-position: var(--px, 50%) var(--py, 50%); }
+.frame.plat::after { background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,.7) 45%, transparent 65%); background-size: 250% 250%; background-position: var(--px, 50%) var(--py, 50%); }
+.card:hover .frame.holo::after, .card:hover .frame.plat::after { opacity: .75; }
+.qty { position: absolute; top: 6px; right: 6px; font: 700 12px/1 var(--mono); background: var(--accent); color: #fff; padding: 4px 6px; }
+.meta { display: grid; gap: 2px; min-width: 0; }
+.meta strong { font-weight: 700; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+.meta span { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pill { font: 700 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 5px; border: 1px solid currentColor; }
+.r-C { color: var(--muted); } .r-H { color: var(--holo); } .r-P { color: var(--plat); } .r-W { color: var(--hallo); } .r-K { color: var(--accent); }
+.empty { padding: 48px 0; color: var(--muted); font-family: var(--mono); }
+
+/* Fiche */
+dialog { border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0; max-width: min(760px, calc(100vw - 32px)); width: 100%; }
+dialog::backdrop { background: rgba(5, 6, 8, .78); }
+.sheet { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 24px; padding: 24px; }
+.sheet .frame { cursor: default; }
+.sheet h2 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 5vw, 40px); line-height: 1; margin: 0 0 16px; text-transform: uppercase; text-wrap: balance; }
+.sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0 0 20px; font-size: 14px; }
+.sheet dt { font-family: var(--mono); color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: .08em; padding-top: 2px; }
+.sheet dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.sheet a { color: var(--accent); }
+.close { position: absolute; top: 8px; right: 8px; background: var(--surface); border: 1px solid var(--line); color: var(--fg); width: 36px; height: 36px; font-size: 20px; cursor: pointer; }
+.nav { display: flex; gap: 8px; }
+.nav button { font: 600 13px/1 var(--body); background: transparent; color: var(--fg); border: 1px solid var(--line); padding: 9px 12px; cursor: pointer; }
+footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-family: var(--mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sheet { grid-template-columns: 1fr; }
+  .sheet > .frame { max-width: 240px; }
+  .count { margin-left: 0; width: 100%; }
+  .bar { position: static; }
+}
+
+/* Navigation + pages guide */
+.topnav { border-bottom: 1px solid var(--line); background: var(--bg); }
+.topnav .wrap { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; padding-block: 12px; }
+.topnav .tag { font: 700 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: auto; }
+.topnav a { font: 600 14px/1 var(--body); color: var(--fg); text-decoration: none; padding: 8px 0; border-bottom: 2px solid transparent; }
+.topnav a[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
+.doc { padding-block: 40px 64px; max-width: 820px; }
+.eyebrow { font: 700 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+.doc-h { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 5.5vw, 52px); line-height: 1; text-transform: uppercase; margin: 0 0 18px; text-wrap: balance; }
+.lede { font-size: 17px; max-width: 65ch; margin: 0 0 24px; }
+.doc p, .doc li { max-width: 68ch; }
+.doc a { color: var(--accent); }
+.doc code { font-family: var(--mono); font-size: .92em; background: var(--surface); border: 1px solid var(--line); padding: 1px 5px; overflow-wrap: anywhere; }
+.warn { border: 1px solid var(--accent); background: var(--accent-soft); padding: 14px 16px; margin: 0 0 32px; max-width: 68ch; }
+.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 34px; }
+.steps > li { counter-increment: s; display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 14px; }
+.steps > li::before { content: counter(s); grid-row: span 9; font-family: var(--display); font-size: 40px; line-height: 1; color: var(--accent); }
+.steps h3 { margin: 4px 0 8px; font-size: 19px; }
+.steps p { margin: 0 0 10px; }
+.steps ul { margin: 0 0 10px; padding-left: 18px; display: grid; gap: 6px; }
+.mini { border-collapse: collapse; margin: 6px 0 12px; font-size: 14px; }
+.mini th, .mini td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+.mini th { font: 700 12px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.note { font-family: var(--mono); font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; margin-top: 36px; }
+.cmds pre, .code { font: 500 13px/1.5 var(--mono); background: var(--surface); border: 1px solid var(--line); padding: 14px; overflow-x: auto; margin: 0 0 16px; }
+.code { max-height: 460px; overflow: auto; white-space: pre; }
+.code.short { max-height: 200px; }
+.codehead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; font: 700 12px/1 var(--mono); color: var(--muted); }
+.copy { font: 600 13px/1 var(--body); background: var(--accent); color: var(--chip-fg); border: 0; padding: 9px 12px; cursor: pointer; }
+@media (max-width: 560px) { .steps > li { grid-template-columns: 34px minmax(0, 1fr); } .steps > li::before { font-size: 28px; } }
+@media (prefers-reduced-motion: reduce) { .frame, .frame::after { transition: none; } .card:hover .frame { transform: none; } }
+
+.lookup { display: grid; gap: 8px; max-width: 760px; }
+.lab { font: 700 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.lookup .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lookup input { flex: 1 1 280px; min-width: 0; font: 500 15px/1 var(--mono); color: var(--fg); background: var(--surface); border: 1px solid var(--line); padding: 12px; }
+.go { font: 700 15px/1 var(--body); background: var(--accent); color: var(--chip-fg); border: 0; padding: 12px 18px; cursor: pointer; }
+.hint { margin: 0; font-size: 14px; color: var(--muted); }
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.status { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 0; min-height: 1.2em; overflow-wrap: anywhere; }
+.status a, .empty a, footer a { color: var(--accent); }
+.dl { font: 600 13px/1 var(--body); color: var(--fg); border: 1px solid var(--line); padding: 9px 12px; text-decoration: none; }
+.empty { max-width: 65ch; font-family: var(--body); line-height: 1.6; }
+</style><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><nav class="topnav" aria-label="Sections"><div class="wrap"><span class="tag">Rules Rescue · archive non officielle</span><a href="#explorer">Explorer</a><a href="#tuto">Guide de récupération</a><a href="#outil">Outil</a></div></nav>
+
+<section class="view" data-view="explorer">
+<header class="wrap">
+  <div class="brand">Cartes Rules TCG · Starknet · lecture seule</div>
+  <h1>Où sont<br>mes <span>cartes</span>&nbsp;?</h1>
+  <form id="f" class="lookup" autocomplete="off">
+    <label for="addr" class="lab">Adresse Starknet (0x…)</label>
+    <div class="row">
+      <input id="addr" name="addr" type="text" inputmode="text" spellcheck="false" placeholder="0x0… ton wallet Argent/Ready/Braavos ou ton ancien compte Rules" required>
+      <button type="submit" class="go">Voir les cartes</button>
+    </div>
+    <p class="hint">Rien à connecter, aucune signature : la page lit seulement la blockchain publique. <button type="button" class="linkish" id="demo">Essayer avec une collection d'exemple</button></p>
+  </form>
+  <div class="counter" id="stats"></div>
+  <p class="status" id="status" role="status"></p>
+</header>
+
+<div class="bar" id="bar" hidden>
+  <div class="wrap">
+    <div class="seg" id="kind" role="group" aria-label="Type">
+      <button type="button" data-v="all" aria-pressed="true">Tout</button>
+      <button type="button" data-v="card" aria-pressed="false">Cartes</button>
+      <button type="button" data-v="pack" aria-pressed="false">Packs</button>
+    </div>
+    <div class="seg" id="rar" role="group" aria-label="Rareté">
+      <button type="button" data-v="all" aria-pressed="true">Toutes</button>
+      <button type="button" data-v="H" aria-pressed="false">Holo</button>
+      <button type="button" data-v="P" aria-pressed="false">Platinium</button>
+      <button type="button" data-v="W" aria-pressed="false">Halloween</button>
+      <button type="button" data-v="C" aria-pressed="false">Common</button>
+    </div>
+    <select id="season" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
+    <select id="artist" aria-label="Artiste"><option value="all">Tous les artistes</option></select>
+    <select id="sort" aria-label="Tri"><option value="rar">Tri : rareté</option><option value="artist">Tri : artiste</option><option value="serial">Tri : n° de série</option></select>
+    <a class="dl" id="dl" href="#">cartes.json</a>
+    <div class="count" id="count"></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Les illustrations appartiennent à leurs artistes.</footer>
+</section>
+
+<section class="view wrap doc" data-view="tuto" hidden>
+  <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Explorer</a> : colle une adresse et vois si des cartes y sont.</p>
+  <p class="eyebrow">Guide · ancien utilisateur Rules</p>
+  <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
+  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une heure, et quelques centimes de frais réseau à la fin.</p>
+
+  <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) ne se colle sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te la demandera. Tout ce qui suit se fait en local sur ta machine.</div>
+
+  <ol class="steps">
+    <li>
+      <h3>Comprendre où sont parties tes cartes</h3>
+      <p>Fin 2023, Rules a proposé une migration : on connectait une extension <b>Argent X</b> ou <b>Braavos</b>, et le site transférait les cartes vers le compte actif de cette extension. Le code public de l'interface (dépôt <code>ruleslabs/interface</code>, fichier <code>MigrateCollectionModal/Cards.tsx</code>) le confirme : la destination est l'adresse du wallet connecté, sans saisie manuelle possible.</p>
+      <p>Donc tes cartes sont sur l'adresse Starknet de ton extension de l'époque, pas sur ton compte Rules, ni sur MetaMask, ni sur Argent Vault (qui est un wallet Ethereum).</p>
+    </li>
+    <li>
+      <h3>Retrouver l'adresse qui détient les cartes</h3>
+      <p>Pars d'une adresse que tu connais (MetaMask, ancien compte Rules) et remonte la piste sur l'explorateur <a href="https://voyager.online" target="_blank" rel="noopener">voyager.online</a> :</p>
+      <ul>
+        <li>Une adresse MetaMask a souvent un dépôt <em>StarkGate</em> vers Starknet. Le champ <code>l2Recipient</code> de cette transaction sur Etherscan donne ton ancien compte Rules.</li>
+        <li>Sur Voyager, ouvre ce compte, onglet <em>Transactions</em> : un gros <code>batch_transfer_from</code> fin 2023 ou en 2024 montre vers quelle adresse les cartes sont parties.</li>
+        <li>Sur cette adresse de destination, les cartes du contrat <code>0x05b4…f70f</code> (le contrat des cartes Rules) apparaissent dans les transferts NFT.</li>
+      </ul>
+      <p>Si Voyager affiche « Contract not found » pour cette adresse, c'est normal : le compte a reçu les cartes mais n'a jamais été <b>déployé</b>.</p>
+    </li>
+    <li>
+      <h3>Comprendre pourquoi ton wallet ne l'affiche pas</h3>
+      <p>Une adresse Starknet est calculée à partir de ta clé <b>et</b> de la version du contrat de compte. En novembre 2023, Argent X utilisait la version 0.3.0. Ready (le nouveau nom d'Argent) utilise aujourd'hui une version plus récente. Avec la même seed, il calcule donc une autre adresse et ne retrouve pas tout seul l'ancienne si elle n'a jamais servi.</p>
+      <table class="mini">
+        <thead><tr><th>Même seed, compte n°0</th><th>Adresse</th></tr></thead>
+        <tbody>
+          <tr><td>Argent X v0.3.0 (fin 2023)</td><td>celle qui détient les cartes</td></tr>
+          <tr><td>Ready v0.4.0 (aujourd'hui)</td><td>celle que l'app affiche</td></tr>
+        </tbody>
+      </table>
+      <p>Braavos et MetaMask ne peuvent pas ouvrir ce compte : ils calculent leurs adresses autrement.</p>
+    </li>
+    <li>
+      <h3>Retrouver la bonne seed</h3>
+      <p>La seed est celle de l'extension utilisée pendant la migration. Si tu utilises encore Ready sur le même ordinateur, c'est souvent la même. Sinon, cherche dans tes notes (Google Keep, Notes), tes captures d'écran, un papier, un gestionnaire de mots de passe. Une vraie seed fait 12 ou 24 mots de la <a href="https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt" target="_blank" rel="noopener">liste BIP39</a> et a une somme de contrôle valide.</p>
+      <p>Pour vérifier sans risque, restaure la seed dans un <b>profil de navigateur vierge</b> (jamais via « Mot de passe oublié » dans ton wallet actuel, qui l'effacerait) et compare les adresses. Le script de l'onglet <a href="#outil">Outil</a> fait ce test hors ligne, sur toutes les versions d'Argent connues.</p>
+    </li>
+    <li>
+      <h3>Prévenir le support Ready</h3>
+      <p>Le support passe par le formulaire de <a href="https://help.ready.co/hc/en-us/requests/new" target="_blank" rel="noopener">help.ready.co</a> (choisir « Ready X (previously Argent X) »). Donne l'adresse des cartes, la version du compte (0.3.0), l'index (souvent 0) et ton adresse Ready actuelle. Le formulaire demande ensuite de confirmer ton email avant d'envoyer la demande.</p>
+    </li>
+    <li>
+      <h3>Déployer le compte et rapatrier les cartes</h3>
+      <p>Si le support ne règle pas le problème, le script de l'onglet <a href="#outil">Outil</a> le fait en trois temps : <code>find</code> retrouve le compte à partir de la seed, <code>check</code> vérifie son état sur la chaîne, <code>migrate</code> simule le déploiement et le transfert, et n'envoie rien tant que tu n'ajoutes pas <code>--execute</code> et que tu ne tapes pas OUI.</p>
+      <p>Il faut un peu de <b>STRK</b> sur l'adresse des cartes pour payer les frais : la simulation donne le montant exact, en général bien moins d'un euro.</p>
+    </li>
+    <li>
+      <h3>Sécuriser ensuite</h3>
+      <ul>
+        <li>Envoie les cartes vers un <b>wallet neuf</b> (Braavos ou Ready) dont la seed n'a jamais été tapée ailleurs que sur papier.</li>
+        <li>Supprime toute seed stockée en clair dans le cloud (notes, mails, captures).</li>
+        <li>Méfie-toi des messages qui proposent de « récupérer tes NFT Rules » : c'est presque toujours une arnaque.</li>
+      </ul>
+    </li>
+  </ol>
+  <p class="note">Statut : les étapes 1 à 5 ont été suivies jusqu'au bout. L'étape 6 a été simulée sans envoi. Une simulation sur Starknet mainnet (octobre 2026) confirme qu'un compte v0.3.0 se déploie encore et que le transfert passe : environ 0,03 STRK pour le déploiement et 0,06 STRK par lot de cartes.</p>
+</section>
+
+<section class="view wrap doc" data-view="outil" hidden>
+  <p class="eyebrow">Outil · Python, en local</p>
+  <h2 class="doc-h">rules_rescue.py</h2>
+  <p class="lede">Retrouve l'ancien compte Argent X qui détient tes cartes, puis simule et exécute leur transfert vers un wallet de ton choix. La seed est saisie de façon masquée, n'est jamais écrite sur le disque et ne part pas sur le réseau.</p>
+  <div class="cmds">
+    <pre><code>pip install starknet-py
+python rules_rescue.py find    --target 0xADRESSE_DES_CARTES
+python rules_rescue.py check   --target 0xADRESSE_DES_CARTES
+python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json
+python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json --execute</code></pre>
+  </div>
+  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a></p><p><code>cartes.json</code> est la liste des cartes à transférer, au format <code>[{"id": "…", "q": 1}]</code>.</p>
+  
+  <p>Ta propre liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Explorer</a>, une fois ton adresse affichée (bouton « cartes.json »).</p>
+</section>
+
+
+
+
+
+<dialog id="dlg" aria-label="Détail de la carte">
+  <button class="close" id="dlgClose" type="button" aria-label="Fermer">×</button>
+  <div class="sheet" id="sheet"></div>
+</dialog>
+
+<script>
+const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f";
+const DEMO = "0x079be38babc015722dacfe6a741219540688bc988319879851e2062dc25319cf";
+const RN = { C: "Common", H: "Holographic", P: "Platinium", W: "Halloween", K: "Pack" };
+const RORD = { P: 0, H: 1, W: 2, C: 3, K: 4 };
+const $ = id => document.getElementById(id);
+let items = [], view = [], cur = 0;
+const state = { kind: "all", rar: "all", season: "all", artist: "all", sort: "rar" };
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function normAddr(a) {
+  a = a.trim().toLowerCase();
+  if (!/^0x[0-9a-f]{1,64}$/.test(a)) return null;
+  return "0x" + a.slice(2).padStart(64, "0");
+}
+
+async function load(addr) {
+  $("status").textContent = "Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)";
+  $("grid").innerHTML = ""; $("stats").innerHTML = ""; $("bar").hidden = true; $("empty").hidden = true;
+  try {
+    const r = await fetch("/api/cards?address=" + addr);
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.status);
+    items = j.items.map((d, i) => ({ ...d, i }));
+    $("dl").href = "/api/cards?address=" + addr + "&format=ids";
+    const deployed = j.deployed ? "déployé" : "jamais déployé (normal pour un compte de migration Rules)";
+    $("status").innerHTML = items.length
+      ? `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`
+      : "";
+    if (!items.length) {
+      $("empty").hidden = false;
+      $("empty").innerHTML = `<b>Aucune carte Rules sur cette adresse.</b> Si c'est ton ancien compte Rules, ouvre-le sur <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> et cherche un gros transfert de cartes fin 2023 : l'adresse de destination est celle de ton wallet de migration. Le <a href="#tuto">guide</a> explique la marche à suivre.`;
+      return;
+    }
+    stats(); fillArtists(); $("bar").hidden = false; render();
+  } catch (e) {
+    $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
+  }
+}
+
+function stats() {
+  const cards = items.filter(d => d.r !== "K");
+  const st = [
+    [cards.reduce((s, d) => s + d.q, 0), "cartes"],
+    [items.filter(d => d.r === "K").reduce((s, d) => s + d.q, 0), "packs"],
+    [new Set(cards.map(d => d.a)).size, "artistes"],
+    [cards.filter(d => d.r === "H").length, "holo"],
+    [cards.filter(d => d.r === "P").length, "platinium"],
+  ];
+  $("stats").innerHTML = st.map(([n, l]) => `<div class="stat"><b>${n}</b><small>${l}</small></div>`).join("");
+}
+function fillArtists() {
+  const counts = {}; items.filter(d => d.r !== "K").forEach(d => counts[d.a] = (counts[d.a] || 0) + d.q);
+  $("artist").innerHTML = `<option value="all">Tous les artistes</option>` + Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr")).map(a => `<option value="${esc(a)}">${esc(a)} (${counts[a]})</option>`).join("");
+  state.artist = "all";
+}
+function filtered() {
+  const out = items.filter(d =>
+    (state.kind === "all" || (state.kind === "pack") === (d.r === "K")) &&
+    (state.rar === "all" || d.r === state.rar) &&
+    (state.season === "all" || String(d.s) === state.season) &&
+    (state.artist === "all" || d.a === state.artist));
+  const by = {
+    rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr") || x.n - y.n,
+    artist: (x, y) => (x.r === "K") - (y.r === "K") || x.a.localeCompare(y.a, "fr") || x.n - y.n,
+    serial: (x, y) => (x.r === "K") - (y.r === "K") || x.n - y.n,
+  }[state.sort];
+  return out.sort(by);
+}
+function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
+function render() {
+  view = filtered();
+  $("grid").innerHTML = view.map((d, k) => `
+    <button class="card" type="button" data-k="${k}">
+      <div class="frame ${frameCls(d)}">
+        <img src="/img/${d.id}" alt="${esc(d.r === "K" ? d.a : d.a + " " + RN[d.r] + " n°" + d.n)}" loading="lazy" decoding="async">
+        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}
+      </div>
+      <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : "#" + d.n + " ·"} S${d.s}</span></div>
+    </button>`).join("");
+  $("count").textContent = `${view.length} / ${items.length}`;
+  for (const id of ["kind", "rar"]) document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === state[id])));
+}
+for (const id of ["kind", "rar"]) $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state[id] = b.dataset.v; render(); });
+for (const id of ["season", "artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; render(); });
+$("grid").addEventListener("pointermove", e => {
+  const f = e.target.closest(".frame"); if (!f) return; const r = f.getBoundingClientRect();
+  f.style.setProperty("--px", ((e.clientX - r.left) / r.width * 100) + "%"); f.style.setProperty("--py", ((e.clientY - r.top) / r.height * 100) + "%");
+});
+function openAt(k) {
+  cur = (k + view.length) % view.length; const d = view[cur];
+  $("sheet").innerHTML = `
+    <div class="frame ${frameCls(d)}"><img src="/img/${d.id}" alt=""></div>
+    <div><h2>${esc(d.a)}</h2><dl>
+      <dt>Rareté</dt><dd><span class="pill r-${d.r}">${RN[d.r]}</span></dd>
+      ${d.r === "K" ? "" : `<dt>N° de série</dt><dd>#${d.n}</dd>`}
+      <dt>Saison</dt><dd>${d.s}</dd><dt>Exemplaires</dt><dd>${d.q}</dd>
+      <dt>Token</dt><dd><a href="https://voyager.online/nft/${CONTRACT}/${d.id}" target="_blank" rel="noopener">Voir sur Voyager ↗</a></dd>
+    </dl><div class="nav"><button type="button" id="prev">← Précédente</button><button type="button" id="next">Suivante →</button></div></div>`;
+  $("prev").onclick = () => openAt(cur - 1); $("next").onclick = () => openAt(cur + 1);
+  if (!$("dlg").open) $("dlg").showModal();
+}
+$("grid").addEventListener("click", e => { const c = e.target.closest(".card"); if (c) openAt(+c.dataset.k); });
+$("dlgClose").onclick = () => $("dlg").close();
+$("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+document.addEventListener("keydown", e => { if (!$("dlg").open) return; if (e.key === "ArrowRight") openAt(cur + 1); if (e.key === "ArrowLeft") openAt(cur - 1); });
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault(); const a = normAddr($("addr").value);
+  if (!a) { $("status").textContent = "Adresse invalide : elle doit commencer par 0x et ne contenir que des caractères 0-9 et a-f."; return; }
+  history.replaceState(null, "", "?address=" + a + location.hash); load(a);
+});
+$("demo").onclick = () => { $("addr").value = DEMO; $("f").requestSubmit(); };
+
+function route() {
+  const v = ["explorer", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
+  document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
+  document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+}
+addEventListener("hashchange", route); route();
+document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
+  const el = $(b.dataset.copy);
+  try { await navigator.clipboard.writeText(el.textContent); b.textContent = "Copié"; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Sélectionné, fais Ctrl+C"; }
+}));
+const q = new URLSearchParams(location.search).get("address");
+if (q && normAddr(q)) { $("addr").value = normAddr(q); load(normAddr(q)); }
+</script>
+</body></html>

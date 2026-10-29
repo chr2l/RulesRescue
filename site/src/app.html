@@ -1,0 +1,183 @@
+<nav class="topnav" aria-label="Sections"><div class="wrap"><span class="tag">Rules Rescue · archive non officielle</span><a href="#explorer">Explorer</a><a href="#tuto">Guide de récupération</a><a href="#outil">Outil</a></div></nav>
+
+<section class="view" data-view="explorer">
+<header class="wrap">
+  <div class="brand">Cartes Rules TCG · Starknet · lecture seule</div>
+  <h1>Où sont<br>mes <span>cartes</span>&nbsp;?</h1>
+  <form id="f" class="lookup" autocomplete="off">
+    <label for="addr" class="lab">Adresse Starknet (0x…)</label>
+    <div class="row">
+      <input id="addr" name="addr" type="text" inputmode="text" spellcheck="false" placeholder="0x0… ton wallet Argent/Ready/Braavos ou ton ancien compte Rules" required>
+      <button type="submit" class="go">Voir les cartes</button>
+    </div>
+    <p class="hint">Rien à connecter, aucune signature : la page lit seulement la blockchain publique. <button type="button" class="linkish" id="demo">Essayer avec une collection d'exemple</button></p>
+  </form>
+  <div class="counter" id="stats"></div>
+  <p class="status" id="status" role="status"></p>
+</header>
+
+<div class="bar" id="bar" hidden>
+  <div class="wrap">
+    <div class="seg" id="kind" role="group" aria-label="Type">
+      <button type="button" data-v="all" aria-pressed="true">Tout</button>
+      <button type="button" data-v="card" aria-pressed="false">Cartes</button>
+      <button type="button" data-v="pack" aria-pressed="false">Packs</button>
+    </div>
+    <div class="seg" id="rar" role="group" aria-label="Rareté">
+      <button type="button" data-v="all" aria-pressed="true">Toutes</button>
+      <button type="button" data-v="H" aria-pressed="false">Holo</button>
+      <button type="button" data-v="P" aria-pressed="false">Platinium</button>
+      <button type="button" data-v="W" aria-pressed="false">Halloween</button>
+      <button type="button" data-v="C" aria-pressed="false">Common</button>
+    </div>
+    <select id="season" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
+    <select id="artist" aria-label="Artiste"><option value="all">Tous les artistes</option></select>
+    <select id="sort" aria-label="Tri"><option value="rar">Tri : rareté</option><option value="artist">Tri : artiste</option><option value="serial">Tri : n° de série</option></select>
+    <a class="dl" id="dl" href="#">cartes.json</a>
+    <div class="count" id="count"></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden></div>
+</main>
+
+<footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Les illustrations appartiennent à leurs artistes.</footer>
+</section>
+
+__GUIDE__
+
+<dialog id="dlg" aria-label="Détail de la carte">
+  <button class="close" id="dlgClose" type="button" aria-label="Fermer">×</button>
+  <div class="sheet" id="sheet"></div>
+</dialog>
+
+<script>
+const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f";
+const DEMO = "0x079be38babc015722dacfe6a741219540688bc988319879851e2062dc25319cf";
+const RN = { C: "Common", H: "Holographic", P: "Platinium", W: "Halloween", K: "Pack" };
+const RORD = { P: 0, H: 1, W: 2, C: 3, K: 4 };
+const $ = id => document.getElementById(id);
+let items = [], view = [], cur = 0;
+const state = { kind: "all", rar: "all", season: "all", artist: "all", sort: "rar" };
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function normAddr(a) {
+  a = a.trim().toLowerCase();
+  if (!/^0x[0-9a-f]{1,64}$/.test(a)) return null;
+  return "0x" + a.slice(2).padStart(64, "0");
+}
+
+async function load(addr) {
+  $("status").textContent = "Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)";
+  $("grid").innerHTML = ""; $("stats").innerHTML = ""; $("bar").hidden = true; $("empty").hidden = true;
+  try {
+    const r = await fetch("/api/cards?address=" + addr);
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.status);
+    items = j.items.map((d, i) => ({ ...d, i }));
+    $("dl").href = "/api/cards?address=" + addr + "&format=ids";
+    const deployed = j.deployed ? "déployé" : "jamais déployé (normal pour un compte de migration Rules)";
+    $("status").innerHTML = items.length
+      ? `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`
+      : "";
+    if (!items.length) {
+      $("empty").hidden = false;
+      $("empty").innerHTML = `<b>Aucune carte Rules sur cette adresse.</b> Si c'est ton ancien compte Rules, ouvre-le sur <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> et cherche un gros transfert de cartes fin 2023 : l'adresse de destination est celle de ton wallet de migration. Le <a href="#tuto">guide</a> explique la marche à suivre.`;
+      return;
+    }
+    stats(); fillArtists(); $("bar").hidden = false; render();
+  } catch (e) {
+    $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
+  }
+}
+
+function stats() {
+  const cards = items.filter(d => d.r !== "K");
+  const st = [
+    [cards.reduce((s, d) => s + d.q, 0), "cartes"],
+    [items.filter(d => d.r === "K").reduce((s, d) => s + d.q, 0), "packs"],
+    [new Set(cards.map(d => d.a)).size, "artistes"],
+    [cards.filter(d => d.r === "H").length, "holo"],
+    [cards.filter(d => d.r === "P").length, "platinium"],
+  ];
+  $("stats").innerHTML = st.map(([n, l]) => `<div class="stat"><b>${n}</b><small>${l}</small></div>`).join("");
+}
+function fillArtists() {
+  const counts = {}; items.filter(d => d.r !== "K").forEach(d => counts[d.a] = (counts[d.a] || 0) + d.q);
+  $("artist").innerHTML = `<option value="all">Tous les artistes</option>` + Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr")).map(a => `<option value="${esc(a)}">${esc(a)} (${counts[a]})</option>`).join("");
+  state.artist = "all";
+}
+function filtered() {
+  const out = items.filter(d =>
+    (state.kind === "all" || (state.kind === "pack") === (d.r === "K")) &&
+    (state.rar === "all" || d.r === state.rar) &&
+    (state.season === "all" || String(d.s) === state.season) &&
+    (state.artist === "all" || d.a === state.artist));
+  const by = {
+    rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr") || x.n - y.n,
+    artist: (x, y) => (x.r === "K") - (y.r === "K") || x.a.localeCompare(y.a, "fr") || x.n - y.n,
+    serial: (x, y) => (x.r === "K") - (y.r === "K") || x.n - y.n,
+  }[state.sort];
+  return out.sort(by);
+}
+function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
+function render() {
+  view = filtered();
+  $("grid").innerHTML = view.map((d, k) => `
+    <button class="card" type="button" data-k="${k}">
+      <div class="frame ${frameCls(d)}">
+        <img src="/img/${d.id}" alt="${esc(d.r === "K" ? d.a : d.a + " " + RN[d.r] + " n°" + d.n)}" loading="lazy" decoding="async">
+        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}
+      </div>
+      <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : "#" + d.n + " ·"} S${d.s}</span></div>
+    </button>`).join("");
+  $("count").textContent = `${view.length} / ${items.length}`;
+  for (const id of ["kind", "rar"]) document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === state[id])));
+}
+for (const id of ["kind", "rar"]) $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state[id] = b.dataset.v; render(); });
+for (const id of ["season", "artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; render(); });
+$("grid").addEventListener("pointermove", e => {
+  const f = e.target.closest(".frame"); if (!f) return; const r = f.getBoundingClientRect();
+  f.style.setProperty("--px", ((e.clientX - r.left) / r.width * 100) + "%"); f.style.setProperty("--py", ((e.clientY - r.top) / r.height * 100) + "%");
+});
+function openAt(k) {
+  cur = (k + view.length) % view.length; const d = view[cur];
+  $("sheet").innerHTML = `
+    <div class="frame ${frameCls(d)}"><img src="/img/${d.id}" alt=""></div>
+    <div><h2>${esc(d.a)}</h2><dl>
+      <dt>Rareté</dt><dd><span class="pill r-${d.r}">${RN[d.r]}</span></dd>
+      ${d.r === "K" ? "" : `<dt>N° de série</dt><dd>#${d.n}</dd>`}
+      <dt>Saison</dt><dd>${d.s}</dd><dt>Exemplaires</dt><dd>${d.q}</dd>
+      <dt>Token</dt><dd><a href="https://voyager.online/nft/${CONTRACT}/${d.id}" target="_blank" rel="noopener">Voir sur Voyager ↗</a></dd>
+    </dl><div class="nav"><button type="button" id="prev">← Précédente</button><button type="button" id="next">Suivante →</button></div></div>`;
+  $("prev").onclick = () => openAt(cur - 1); $("next").onclick = () => openAt(cur + 1);
+  if (!$("dlg").open) $("dlg").showModal();
+}
+$("grid").addEventListener("click", e => { const c = e.target.closest(".card"); if (c) openAt(+c.dataset.k); });
+$("dlgClose").onclick = () => $("dlg").close();
+$("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
+document.addEventListener("keydown", e => { if (!$("dlg").open) return; if (e.key === "ArrowRight") openAt(cur + 1); if (e.key === "ArrowLeft") openAt(cur - 1); });
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault(); const a = normAddr($("addr").value);
+  if (!a) { $("status").textContent = "Adresse invalide : elle doit commencer par 0x et ne contenir que des caractères 0-9 et a-f."; return; }
+  history.replaceState(null, "", "?address=" + a + location.hash); load(a);
+});
+$("demo").onclick = () => { $("addr").value = DEMO; $("f").requestSubmit(); };
+
+function route() {
+  const v = ["explorer", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
+  document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
+  document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+}
+addEventListener("hashchange", route); route();
+document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
+  const el = $(b.dataset.copy);
+  try { await navigator.clipboard.writeText(el.textContent); b.textContent = "Copié"; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Sélectionné, fais Ctrl+C"; }
+}));
+const q = new URLSearchParams(location.search).get("address");
+if (q && normAddr(q)) { $("addr").value = normAddr(q); load(normAddr(q)); }
+</script>
