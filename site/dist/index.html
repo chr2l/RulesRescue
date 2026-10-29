@@ -313,13 +313,15 @@ async function load(addr) {
       return;
     }
     const metaAll = {};
-    for (let k = 0; k < held.length; k += 40) {
-      $("status").textContent = `Lecture des cartes… ${Math.min(k + 40, held.length)} / ${held.length}`;
-      const part = held.slice(k, k + 40).map(x => x.id);
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try { Object.assign(metaAll, await (await fetch("/api/meta?ids=" + part.join(","))).json()); break; }
-        catch (e) { await new Promise(r => setTimeout(r, 1500)); }
+    let todo = held.map(x => x.id);
+    for (let pass = 0; pass < 5 && todo.length; pass++) {
+      if (pass) await new Promise(r => setTimeout(r, 2000));
+      for (let k = 0; k < todo.length; k += 40) {
+        const done = Object.values(metaAll).filter(Boolean).length;
+        $("status").textContent = `Lecture des cartes… ${done} / ${held.length}`;
+        try { Object.assign(metaAll, await (await fetch("/api/meta?ids=" + todo.slice(k, k + 40).join(","))).json()); } catch (e) {}
       }
+      todo = todo.filter(id => !metaAll[id]);
     }
     items = held.map((x, i) => {
       const m = metaAll[x.id];
