@@ -141,6 +141,9 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
 .status { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 0; min-height: 1.2em; overflow-wrap: anywhere; }
 .status a, .empty a, footer a { color: var(--accent); }
 .dl { font: 600 13px/1 var(--body); color: var(--fg); border: 1px solid var(--line); padding: 9px 12px; text-decoration: none; }
+.sub { font-size: 20px; margin: 34px 0 10px; }
+.plain { padding-left: 20px; display: grid; gap: 8px; max-width: 68ch; }
+.doc .code { white-space: pre-wrap; }
 .empty { max-width: 65ch; font-family: var(--body); line-height: 1.6; }
 </style><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><nav class="topnav" aria-label="Sections"><div class="wrap"><span class="tag">Rules Rescue · archive non officielle</span><a href="#explorer">Explorer</a><a href="#tuto">Guide de récupération</a><a href="#outil">Outil</a></div></nav>
 
@@ -194,7 +197,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
   <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Explorer</a> : colle une adresse et vois si des cartes y sont.</p>
   <p class="eyebrow">Guide · ancien utilisateur Rules</p>
   <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
-  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une heure, et quelques centimes de frais réseau à la fin.</p>
+  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une à deux heures, et environ 5 STRK de frais réseau pour 250 cartes.</p>
 
   <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) ne se colle sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te la demandera. Tout ce qui suit se fait en local sur ta machine.</div>
 
@@ -238,10 +241,12 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
     <li>
       <h3>Déployer le compte et rapatrier les cartes</h3>
       <p>Si le support ne règle pas le problème, le script de l'onglet <a href="#outil">Outil</a> le fait en trois temps : <code>find</code> retrouve le compte à partir de la seed, <code>check</code> vérifie son état sur la chaîne, <code>migrate</code> simule le déploiement et le transfert, et n'envoie rien tant que tu n'ajoutes pas <code>--execute</code> et que tu ne tapes pas OUI.</p>
-      <p>Il faut un peu de <b>STRK</b> sur l'adresse des cartes pour payer les frais : la simulation donne le montant exact, en général bien moins d'un euro.</p>
+      <p>Il faut des <b>STRK</b> sur l'adresse des cartes pour payer les frais : environ 0,03 STRK pour le déploiement, puis 0,8 STRK par lot de 40 cartes, soit près de 5 STRK pour 250 cartes. La simulation donne le chiffre exact. Prévois une marge (8 à 10 STRK).</p>
+      <p>Le plus simple pour en obtenir : acheter des STRK sur une plateforme (Binance, Kraken, Coinbase…) et faire un retrait sur le <b>réseau Starknet</b> directement vers l'adresse des cartes. Le compte n'a pas besoin d'être déployé pour recevoir des STRK. Argent Vault (Ethereum) ne sait pas envoyer vers Starknet.</p>
     </li>
     <li>
       <h3>Sécuriser ensuite</h3>
+      <p>Une fois le transfert fait, les cartes peuvent mettre du temps à apparaître dans Ready, ou s'y afficher sans image : leurs fiches étaient hébergées par Rules. La blockchain fait foi : vérifie sur l'onglet <a href="#explorer">Explorer</a>.</p>
       <ul>
         <li>Envoie les cartes vers un <b>wallet neuf</b> (Braavos ou Ready) dont la seed n'a jamais été tapée ailleurs que sur papier.</li>
         <li>Supprime toute seed stockée en clair dans le cloud (notes, mails, captures).</li>
@@ -249,23 +254,87 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
       </ul>
     </li>
   </ol>
-  <p class="note">Statut : les étapes 1 à 5 ont été suivies jusqu'au bout. L'étape 6 a été simulée sans envoi. Une simulation sur Starknet mainnet (octobre 2026) confirme qu'un compte v0.3.0 se déploie encore et que le transfert passe : environ 0,03 STRK pour le déploiement et 0,06 STRK par lot de cartes.</p>
+  <h3 class="sub">Problèmes rencontrés et solutions</h3>
+  <table class="mini">
+    <thead><tr><th>Symptôme</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td>Windows : <code>pywintypes.error: (126, 'LoadLibraryEx', …)</code> au lancement du script</td><td>La bibliothèque crypto de <code>starknet-py</code> ne se charge pas sous Windows. Lance le script dans Docker ou WSL (voir l'onglet <a href="#outil">Outil</a>).</td></tr>
+      <tr><td>Ready n'affiche que ton adresse actuelle</td><td>Normal : l'adresse des cartes est l'ancienne version (v0.3.0) du même compte. Le script la retrouve à partir de ta seed.</td></tr>
+      <tr><td>Argent Vault : « We're not yet able to send from Ethereum to Starknet »</td><td>Passe par une plateforme d'échange et retire les STRK sur le réseau Starknet.</td></tr>
+      <tr><td>« Mot de passe oublié » proposé pour restaurer une seed</td><td>Ne l'utilise pas sur ton wallet actuel : ça l'efface. Restaure dans un profil de navigateur vierge.</td></tr>
+      <tr><td>Envoi refusé pour frais insuffisants</td><td>Ajoute des STRK sur l'adresse des cartes et relance : le script reprend là où il s'est arrêté.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Statut (30/10/2026) : démarche suivie de bout en bout sur une collection de 252 exemplaires. Simulation complète sur Starknet mainnet (déploiement + 7 lots) : tout passe, ≈ 4,9 STRK de frais.</p>
 </section>
 
 <section class="view wrap doc" data-view="outil" hidden>
-  <p class="eyebrow">Outil · Python, en local</p>
-  <h2 class="doc-h">rules_rescue.py</h2>
-  <p class="lede">Retrouve l'ancien compte Argent X qui détient tes cartes, puis simule et exécute leur transfert vers un wallet de ton choix. La seed est saisie de façon masquée, n'est jamais écrite sur le disque et ne part pas sur le réseau.</p>
-  <div class="cmds">
-    <pre><code>pip install starknet-py
-python rules_rescue.py find    --target 0xADRESSE_DES_CARTES
-python rules_rescue.py check   --target 0xADRESSE_DES_CARTES
-python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json
-python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xNOUVEAU_WALLET --ids cartes.json --execute</code></pre>
-  </div>
-  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a></p><p><code>cartes.json</code> est la liste des cartes à transférer, au format <code>[{"id": "…", "q": 1}]</code>.</p>
-  
-  <p>Ta propre liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Explorer</a>, une fois ton adresse affichée (bouton « cartes.json »).</p>
+  <p class="eyebrow">Outil · trois façons de faire</p>
+  <h2 class="doc-h">Rapatrier tes cartes</h2>
+  <p class="lede">Choisis selon ton aisance. Dans tous les cas, ta seed se tape uniquement sur ta propre machine, dans une saisie masquée, jamais dans un chat ni sur un site.</p>
+
+  <h3 class="sub">A · Avec une IA qui agit sur ton ordinateur</h3>
+  <p>Si tu utilises un assistant capable de lancer des commandes sur ton PC (Claude Code, Claude avec accès à l'ordinateur, Cursor…), copie ce texte et colle-le-lui. Il fera les vérifications et la simulation, puis te laissera valider l'envoi.</p>
+  <div class="codehead"><span>Prompt à copier</span><button type="button" class="copy" data-copy="prompt">Copier le prompt</button></div>
+  <pre class="code" id="prompt">Je veux récupérer mes cartes Rules (rules.art, fermé), des NFT ERC-1155 sur Starknet
+(contrat 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f).
+Guide et outil : https://rules.elie.place (onglets Guide et Outil).
+
+Mes infos (à compléter) :
+- Adresse qui détient les cartes (vue dans l'Explorer de rules.elie.place) : 0x...
+- Adresse de destination (mon wallet Ready ou Braavos actuel) : 0x...
+
+Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
+1. Télécharge https://rules.elie.place/rules_rescue.py et ma liste :
+   https://rules.elie.place/api/cards?address=&lt;ADRESSE_DES_CARTES&gt;&amp;format=ids (enregistre-la en cartes.json).
+2. Installe Python et starknet-py. Sous Windows, si tu as l'erreur "LoadLibraryEx 126",
+   utilise Docker (image python:3.12) ou WSL Ubuntu à la place.
+3. Lance `rules_rescue.py check --target &lt;ADRESSE_DES_CARTES&gt;` et dis-moi s'il y a assez de STRK
+   (il en faut environ 1 par lot de 40 cartes, plus une marge). Sinon, explique-moi comment en
+   acheter et les retirer sur le réseau Starknet vers cette adresse, puis attends.
+4. Lance `rules_rescue.py migrate --target ... --to ... --ids cartes.json` (simulation).
+   Le script me demandera ma seed dans une saisie masquée : c'est MOI qui la tape dans le terminal.
+   Ne me demande jamais ma seed dans la conversation et ne l'écris jamais dans un fichier.
+5. Montre-moi le résultat de la simulation. Si tout est OK, demande-moi ma confirmation explicite
+   avant de relancer avec --execute, et laisse-moi taper OUI moi-même.
+6. À la fin, vérifie sur https://rules.elie.place/?address=&lt;ADRESSE_DE_DESTINATION&gt;
+   que les cartes sont arrivées.</pre>
+  <p class="hint">Une IA qui te demande ta seed dans la conversation ne respecte pas cette consigne : refuse.</p>
+
+  <h3 class="sub">B · Sans IA, avec le script</h3>
+  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a> Ta liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Explorer</a> (bouton « cartes.json »). Mets les deux fichiers dans le même dossier et ouvre un terminal dedans.</p>
+  <p><b>Mac ou Linux :</b></p>
+  <div class="cmds"><pre><code>pip install starknet-py
+python3 rules_rescue.py check   --target 0xADRESSE_DES_CARTES
+python3 rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xDESTINATION --ids cartes.json
+python3 rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xDESTINATION --ids cartes.json --execute</code></pre></div>
+  <p><b>Windows</b> (le script ne tourne pas directement, à cause d'une bibliothèque crypto) : installe <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop</a>, ouvre l'invite de commandes dans le dossier et tape :</p>
+  <div class="cmds"><pre><code>docker run --rm -it -v "%cd%":/w -w /w python:3.12 bash
+pip install starknet-py
+python rules_rescue.py check --target 0xADRESSE_DES_CARTES</code></pre></div>
+  <p>puis les mêmes commandes <code>migrate</code> que ci-dessus. Alternative : <code>wsl --install</code>, redémarre, ouvre Ubuntu et suis la version Linux.</p>
+  <p>Ce que fait chaque étape : <code>check</code> lit l'état du compte, <code>migrate</code> retrouve le compte depuis ta seed puis simule tout sans rien envoyer, et <code>--execute</code> envoie vraiment, après que tu as tapé OUI.</p>
+
+  <h3 class="sub">C · Sans rien installer</h3>
+  <ol class="plain">
+    <li>Vérifie dans l'onglet <a href="#explorer">Explorer</a> où sont tes cartes.</li>
+    <li>Écris au support Ready via <a href="https://help.ready.co/hc/en-us/requests/new" target="_blank" rel="noopener">help.ready.co</a> (produit « Ready X (previously Argent X) ») avec le modèle ci-dessous, puis confirme l'email qu'ils t'envoient.</li>
+    <li>Ou demande de l'aide à quelqu'un de confiance à l'aise avec un terminal, en lui montrant cette page. Ne lui donne pas ta seed : c'est toi qui la tapes.</li>
+  </ol>
+  <div class="codehead"><span>Message au support Ready</span><button type="button" class="copy" data-copy="support">Copier le message</button></div>
+  <pre class="code short" id="support">Hello,
+
+In late 2023 I migrated my Rules (rules.art) trading cards to an Argent X account on Starknet.
+The cards (ERC-1155, contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f)
+are on this address, which was never deployed:
+0x... (cards address)
+
+It is derived from the same seed as my current Ready account 0x... (current address),
+but with the Argent account class v0.3.0, so Ready does not show it.
+How can I make this legacy account appear in Ready, deploy it, and transfer my NFTs?
+I will never share my seed phrase.
+
+Thank you</pre>
 </section>
 
 
