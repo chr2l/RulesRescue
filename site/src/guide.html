@@ -4,8 +4,40 @@
   <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
   <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une à deux heures, et environ 5 STRK de frais réseau pour 250 cartes.</p>
 
+  <div class="quick">
+    <p class="eyebrow">En 30 secondes</p>
+    <ol class="plain">
+      <li>Colle ton adresse (Ready, Argent, Braavos, ou ton ancien compte Rules) dans l'<a href="#explorer">Explorer</a>. Il montre les cartes et l'historique du compte.</li>
+      <li>Trouve dans le tableau ci-dessous ta situation : elle te dit quoi faire.</li>
+      <li>Garde ta seed pour toi. Personne n'en a besoin pour t'aider.</li>
+    </ol>
+  </div>
+
+  <h3 class="sub">Quelle est ta situation ?</h3>
+  <table class="mini sit">
+    <thead><tr><th>Pendant la migration Rules (fin 2023), tu avais…</th><th>Ce qu'il faut faire</th></tr></thead>
+    <tbody>
+      <tr><td><b>Argent X</b> (aujourd'hui Ready)</td><td>Tes cartes sont sur l'ancienne version de ton compte Argent, souvent invisible dans Ready. Suis les étapes 1 à 7 ci-dessous. Cas testé de bout en bout.</td></tr>
+      <tr><td><b>Braavos</b></td><td>Voir l'encadré « Si tu utilisais Braavos » juste après. Les cartes sont sur ton compte Braavos de l'époque.</td></tr>
+      <tr><td>Rien, tu n'as jamais fait la migration</td><td>Les cartes sont restées sur ton compte Rules d'origine. Elles sont visibles dans l'Explorer mais <b>bloquées</b> : ce type de compte ne peut plus envoyer de transactions (détails en bas de page).</td></tr>
+      <tr><td>Tu ne sais plus</td><td>Colle ton ancien compte Rules dans l'Explorer : l'historique indique combien de cartes ont été envoyées. Sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a>, le gros transfert de fin 2023 donne l'adresse de destination, puis colle-la à son tour dans l'Explorer.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box" id="braavos">
+    <h3>Si tu utilisais Braavos</h3>
+    <ol class="plain">
+      <li>Retrouve l'adresse des cartes (étape 2 ci-dessous) et vérifie-la dans l'Explorer.</li>
+      <li>Installe l'extension Braavos dans un <b>profil de navigateur vierge</b> et restaure ta seed Braavos de l'époque. Braavos retrouve normalement tes anciens comptes et propose de les mettre à jour si besoin.</li>
+      <li>Si l'adresse des cartes apparaît dans Braavos : ajoute quelques STRK dessus, puis envoie les cartes depuis l'onglet NFT de Braavos. Si elles n'y sont pas affichées, passe par <a href="https://voyager.online/contract/0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f" target="_blank" rel="noopener">le contrat des cartes sur Voyager</a>, onglet « Write contract », Braavos connecté, fonction <code>batch_transfer_from</code>.</li>
+      <li>Si l'adresse n'apparaît pas : écris au support Braavos depuis l'application (menu Aide), avec l'adresse des cartes et ton adresse actuelle. Le message modèle de l'onglet <a href="#outil">Outil</a> s'adapte facilement.</li>
+    </ol>
+    <p class="hint">Le script de l'onglet Outil ne gère que les comptes Argent : Braavos calcule ses adresses autrement. Ce parcours Braavos n'a pas encore été testé de bout en bout. Si tu le fais, ton retour sur Discord aidera les suivants.</p>
+  </div>
+
   <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) ne se colle sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te la demandera. Tout ce qui suit se fait en local sur ta machine.</div>
 
+  <h3 class="sub">Les étapes en détail (cas Argent X / Ready)</h3>
   <ol class="steps">
     <li>
       <h3>Comprendre où sont parties tes cartes</h3>

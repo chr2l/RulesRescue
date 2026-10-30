@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Rules Rescue</title><meta name="description" content="Retrouver et récupérer ses cartes Rules (rules.art) sur Starknet après la fermeture du site."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Inconsolata:wght@500;700&display=swap"><style>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Rules Rescue</title><meta name="description" content="Retrouver et récupérer ses cartes Rules (rules.art) sur Starknet après la fermeture du site."><meta property="og:type" content="website"><meta property="og:site_name" content="Rules Rescue · archive non officielle"><meta property="og:title" content="Rules Rescue : retrouver ses cartes Rules"><meta property="og:description" content="Colle ton adresse Starknet pour voir tes cartes Rules et l'historique de ton compte, puis suis le guide (Argent X/Ready, Braavos) pour les rapatrier. Site non officiel, sans connexion ni signature."><meta property="og:url" content="https://rules.elie.place/"><meta name="theme-color" content="#9f04dc"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Inconsolata:wght@500;700&display=swap"><style>
 /* Layout: classeur de collection — bandeau compteur, rail de filtres collant, grille de cartes au format 0.63 */
 :root {
   --bg: #0d1114;
@@ -41,6 +41,16 @@ header { padding-block: 40px 24px; display: grid; gap: 20px; }
 h1 { font-family: var(--display); font-weight: 400; font-size: clamp(40px, 8vw, 92px); line-height: .9; margin: 0; letter-spacing: -.01em; text-transform: uppercase; text-wrap: balance; }
 h1 span { color: var(--accent); }
 .counter { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick, .box { border: 1px solid var(--line); background: var(--surface); padding: 14px 18px; margin: 18px 0; }
+.quick { border-left: 4px solid var(--accent); }
+.box h3 { margin-top: 0; }
+.sit td:first-child { white-space: nowrap; }
+@media (max-width: 640px) { .sit td:first-child { white-space: normal; } }
+.hist { border: 1px solid var(--line); background: var(--surface); padding: 12px 14px; margin-top: 12px; }
+.hist summary { cursor: pointer; font-weight: 600; }
+.hist[open] summary { margin-bottom: 10px; }
+.hist .stat { max-width: 220px; }
+.hist .why { font-size: 12px; color: var(--muted); line-height: 1.35; }
 .stat { border: 1px solid var(--line); background: var(--surface); padding: 10px 14px; display: grid; gap: 2px; min-width: 110px; }
 .stat b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
 .stat small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
