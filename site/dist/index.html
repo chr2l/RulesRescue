@@ -262,10 +262,11 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
       <tr><td>Ready n'affiche que ton adresse actuelle</td><td>Normal : l'adresse des cartes est l'ancienne version (v0.3.0) du même compte. Le script la retrouve à partir de ta seed.</td></tr>
       <tr><td>Argent Vault : « We're not yet able to send from Ethereum to Starknet »</td><td>Passe par une plateforme d'échange et retire les STRK sur le réseau Starknet.</td></tr>
       <tr><td>« Mot de passe oublié » proposé pour restaurer une seed</td><td>Ne l'utilise pas sur ton wallet actuel : ça l'efface. Restaure dans un profil de navigateur vierge.</td></tr>
+      <tr><td>Cartes restées sur le compte Rules d'origine (jamais migrées)</td><td>Bloquées, même avec la clé privée exportée : le contrat de compte Rules n'accepte que les anciennes transactions v1, que Starknet n'accepte plus (testé le 30/10/2026). Seule une évolution du réseau ou du contrat pourrait les débloquer.</td></tr>
       <tr><td>Envoi refusé pour frais insuffisants</td><td>Ajoute des STRK sur l'adresse des cartes et relance : le script reprend là où il s'est arrêté.</td></tr>
     </tbody>
   </table>
-  <p class="note">Statut (30/10/2026) : démarche suivie de bout en bout sur une collection de 252 exemplaires. Simulation complète sur Starknet mainnet (déploiement + 7 lots) : tout passe, ≈ 4,9 STRK de frais.</p>
+  <p class="note">Statut (30/10/2026) : démarche suivie de bout en bout sur une collection de 252 exemplaires. Migration réelle réussie le 30/10/2026 : déploiement + 7 lots, 252 exemplaires arrivés sur Ready, ≈ 4,8 STRK de frais.</p>
 </section>
 
 <section class="view wrap doc" data-view="outil" hidden>

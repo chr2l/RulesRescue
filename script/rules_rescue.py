@@ -22,9 +22,7 @@ Exemples :
     python rules_rescue.py migrate --target 0x079be... --to 0xTON_NOUVEAU_WALLET --ids cartes.json
     python rules_rescue.py migrate --target 0x079be... --to 0x... --ids cartes.json --execute
 
-Compte Rules d'origine (jamais migré), avec la clé privée exportée depuis rules.art :
-    python rules_rescue.py find    --target 0xCOMPTE_RULES --rules-key
-    python rules_rescue.py migrate --target 0xCOMPTE_RULES --to 0x... --ids cartes.json --rules-key
+Comptes Rules d'origine (jamais migrés) : bloqués, voir --rules-key et le guide.
 """
 import argparse, asyncio, getpass, hashlib, hmac, json, sys, unicodedata
 
@@ -194,24 +192,9 @@ async def main():
         return
 
     if a.rules_key:
-        raw = getpass.getpass("Clé privée du compte Rules (0x…, saisie masquée) : ").strip()
-        try:
-            sk = int(raw, 16)
-        except ValueError:
-            sys.exit("Clé invalide : elle doit commencer par 0x et ne contenir que 0-9 a-f.")
-        del raw
-        pk = KeyPair.from_private_key(sk).public_key
-        client, url = await get_client(a.rpc)
-        try:
-            onchain = (await client.call_contract(Call(to_addr=target, selector=get_selector_from_name("get_signer_public_key"), calldata=[])))[0]
-        except Exception as e:
-            sys.exit(f"Impossible de lire la clé publique du compte (est-ce bien un compte Rules déployé ?) : {e}")
-        if onchain != pk:
-            sys.exit("Cette clé ne correspond pas au compte Rules indiqué. Rien n'a été envoyé.")
-        print("Clé vérifiée : elle contrôle bien ce compte Rules.")
-        cls, cd = None, None
-        if a.cmd == "find":
-            return
+        sys.exit("Comptes Rules d'origine : bloqués. Leur contrat (classe 0x01c644…) refuse les transactions v3 "
+                 "('Account: invalid tx version') et Starknet n'accepte plus les transactions v1 (testé le 30/10/2026). "
+                 "Même avec la clé exportée, les cartes ne peuvent plus en sortir. Voir le guide sur rules.elie.place.")
     else:
         mnemonic = ask_seed()
         print("Recherche du compte (calcul local, ~30 s)…")
