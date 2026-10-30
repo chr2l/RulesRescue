@@ -1,5 +1,5 @@
 <section class="view wrap doc" data-view="tuto" hidden>
-  <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Explorer</a> : colle une adresse et vois si des cartes y sont.</p>
+  <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Collection</a> : colle une adresse et vois si des cartes y sont.</p>
   <p class="eyebrow">Guide · ancien utilisateur Rules</p>
   <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
   <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une à deux heures, et environ 5 STRK de frais réseau pour 250 cartes.</p>
@@ -7,7 +7,7 @@
   <div class="quick">
     <p class="eyebrow">En 30 secondes</p>
     <ol class="plain">
-      <li>Colle ton adresse (Ready, Argent, Braavos, ou ton ancien compte Rules) dans l'<a href="#explorer">Explorer</a>. Il montre les cartes et l'historique du compte.</li>
+      <li>Colle ton adresse (Ready, Argent, Braavos, ou ton ancien compte Rules) dans la <a href="#explorer">Collection</a>. Il montre les cartes et l'historique du compte.</li>
       <li>Trouve dans le tableau ci-dessous ta situation : elle te dit quoi faire.</li>
       <li>Garde ta seed pour toi. Personne n'en a besoin pour t'aider.</li>
     </ol>
@@ -19,15 +19,15 @@
     <tbody>
       <tr><td><b>Argent X</b> (aujourd'hui Ready)</td><td>Tes cartes sont sur l'ancienne version de ton compte Argent, souvent invisible dans Ready. Suis les étapes 1 à 7 ci-dessous. Cas testé de bout en bout.</td></tr>
       <tr><td><b>Braavos</b></td><td>Voir l'encadré « Si tu utilisais Braavos » juste après. Les cartes sont sur ton compte Braavos de l'époque.</td></tr>
-      <tr><td>Rien, tu n'as jamais fait la migration</td><td>Les cartes sont restées sur ton compte Rules d'origine. Elles sont visibles dans l'Explorer mais <b>bloquées</b> : ce type de compte ne peut plus envoyer de transactions (détails en bas de page).</td></tr>
-      <tr><td>Tu ne sais plus</td><td>Colle ton ancien compte Rules dans l'Explorer : l'historique indique combien de cartes ont été envoyées. Sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a>, le gros transfert de fin 2023 donne l'adresse de destination, puis colle-la à son tour dans l'Explorer.</td></tr>
+      <tr><td>Rien, tu n'as jamais fait la migration</td><td>Les cartes sont restées sur ton compte Rules d'origine. Elles sont visibles dans la Collection mais <b>bloquées</b> : ce type de compte ne peut plus envoyer de transactions (détails en bas de page).</td></tr>
+      <tr><td>Tu ne sais plus</td><td>Colle ton ancien compte Rules dans la Collection : l'historique indique combien de cartes ont été envoyées. Sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a>, le gros transfert de fin 2023 donne l'adresse de destination, puis colle-la à son tour dans la Collection.</td></tr>
     </tbody>
   </table>
 
   <div class="box" id="braavos">
     <h3>Si tu utilisais Braavos</h3>
     <ol class="plain">
-      <li>Retrouve l'adresse des cartes (étape 2 ci-dessous) et vérifie-la dans l'Explorer.</li>
+      <li>Retrouve l'adresse des cartes (étape 2 ci-dessous) et vérifie-la dans la Collection.</li>
       <li>Installe l'extension Braavos dans un <b>profil de navigateur vierge</b> et restaure ta seed Braavos de l'époque. Braavos retrouve normalement tes anciens comptes et propose de les mettre à jour si besoin.</li>
       <li>Si l'adresse des cartes apparaît dans Braavos : ajoute quelques STRK dessus, puis envoie les cartes depuis l'onglet NFT de Braavos. Si elles n'y sont pas affichées, passe par <a href="https://voyager.online/contract/0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f" target="_blank" rel="noopener">le contrat des cartes sur Voyager</a>, onglet « Write contract », Braavos connecté, fonction <code>batch_transfer_from</code>.</li>
       <li>Si l'adresse n'apparaît pas : écris au support Braavos depuis l'application (menu Aide), avec l'adresse des cartes et ton adresse actuelle. Le message modèle de l'onglet <a href="#outil">Outil</a> s'adapte facilement.</li>
@@ -83,7 +83,7 @@
     </li>
     <li>
       <h3>Sécuriser ensuite</h3>
-      <p>Une fois le transfert fait, les cartes peuvent mettre du temps à apparaître dans Ready, ou s'y afficher sans image : leurs fiches étaient hébergées par Rules. La blockchain fait foi : vérifie sur l'onglet <a href="#explorer">Explorer</a>.</p>
+      <p>Une fois le transfert fait, les cartes peuvent mettre du temps à apparaître dans Ready, ou s'y afficher sans image : leurs fiches étaient hébergées par Rules. La blockchain fait foi : vérifie sur l'onglet <a href="#explorer">Collection</a>.</p>
       <ul>
         <li>Envoie les cartes vers un <b>wallet neuf</b> (Braavos ou Ready) dont la seed n'a jamais été tapée ailleurs que sur papier.</li>
         <li>Supprime toute seed stockée en clair dans le cloud (notes, mails, captures).</li>
@@ -119,7 +119,7 @@
 Guide et outil : https://rules.elie.place (onglets Guide et Outil).
 
 Mes infos (à compléter) :
-- Adresse qui détient les cartes (vue dans l'Explorer de rules.elie.place) : 0x...
+- Adresse qui détient les cartes (vue dans l'onglet Collection de rules.elie.place) : 0x...
 - Adresse de destination (mon wallet Ready ou Braavos actuel) : 0x...
 
 Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
@@ -140,7 +140,7 @@ Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
   <p class="hint">Une IA qui te demande ta seed dans la conversation ne respecte pas cette consigne : refuse.</p>
 
   <h3 class="sub">B · Sans IA, avec le script</h3>
-  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a> Ta liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Explorer</a> (bouton « cartes.json »). Mets les deux fichiers dans le même dossier et ouvre un terminal dedans.</p>
+  <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a> Ta liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Collection</a> (bouton « cartes.json »). Mets les deux fichiers dans le même dossier et ouvre un terminal dedans.</p>
   <p><b>Mac ou Linux :</b></p>
   <div class="cmds"><pre><code>pip install starknet-py
 python3 rules_rescue.py check   --target 0xADRESSE_DES_CARTES
@@ -155,7 +155,7 @@ python rules_rescue.py check --target 0xADRESSE_DES_CARTES</code></pre></div>
 
   <h3 class="sub">C · Sans rien installer</h3>
   <ol class="plain">
-    <li>Vérifie dans l'onglet <a href="#explorer">Explorer</a> où sont tes cartes.</li>
+    <li>Vérifie dans l'onglet <a href="#explorer">Collection</a> où sont tes cartes.</li>
     <li>Écris au support Ready via <a href="https://help.ready.co/hc/en-us/requests/new" target="_blank" rel="noopener">help.ready.co</a> (produit « Ready X (previously Argent X) ») avec le modèle ci-dessous, puis confirme l'email qu'ils t'envoient.</li>
     <li>Ou demande de l'aide à quelqu'un de confiance à l'aise avec un terminal, en lui montrant cette page. Ne lui donne pas ta seed : c'est toi qui la tapes.</li>
   </ol>

@@ -1,8 +1,9 @@
-<nav class="topnav" aria-label="Sections"><div class="wrap"><span class="tag">Rules Rescue · archive non officielle</span><a href="#explorer">Explorer</a><a href="#tuto">Guide de récupération</a><a href="#outil">Outil</a></div></nav>
+<div class="unoff" role="note">Archive <b>non officielle</b>, faite par un ancien joueur. Sans lien avec Rules Labs. Aucune connexion de wallet, aucune signature.</div>
+<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge">Non officiel</span><span class="sp"></span><a href="#explorer">Collection</a><a href="#tuto">Tuto</a><a href="#outil">Outil</a></div></nav>
 
 <section class="view" data-view="explorer">
 <header class="wrap">
-  <div class="brand">Cartes Rules TCG · Starknet · lecture seule</div>
+  <div class="brand">Cartes Rules · Starknet · lecture seule</div>
   <h1>Où sont<br>mes <span>cartes</span>&nbsp;?</h1>
   <form id="f" class="lookup" autocomplete="off">
     <label for="addr" class="lab">Adresse Starknet (0x…)</label>
@@ -12,6 +13,7 @@
     </div>
     <p class="hint">Rien à connecter, aucune signature : la page lit seulement la blockchain publique. <button type="button" class="linkish" id="demo">Essayer avec une collection d'exemple</button></p>
   </form>
+  <div class="profile" id="profile" hidden><div class="ava" id="ava"></div><div><div class="pname" id="pname"></div><div class="wallet" id="pwallet"></div></div></div>
   <div class="counter" id="stats"></div>
   <p class="status" id="status" role="status"></p>
   <details class="hist" id="hist" hidden><summary>Historique du compte</summary><div id="histBody"></div></details>
@@ -73,7 +75,7 @@ function normAddr(a) {
 async function load(addr) {
   $("status").textContent = "Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)";
   $("grid").innerHTML = ""; $("stats").innerHTML = ""; $("bar").hidden = true; $("empty").hidden = true;
-  history(addr);
+  history(addr); profile(addr);
   try {
     const r = await fetch("/api/cards?address=" + addr);
     const j = await r.json();
@@ -111,6 +113,15 @@ async function load(addr) {
   } catch (e) {
     $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
   }
+}
+
+function profile(addr) {
+  const h = addr.slice(-6), a = parseInt(h.slice(0, 3), 16) % 360, b = (a + 140) % 360;
+  $("ava").style.background = `conic-gradient(from ${a}deg, hsl(${a} 90% 55%), hsl(${b} 90% 45%), hsl(${a} 90% 55%))`;
+  $("ava").textContent = h.slice(0, 2).toUpperCase();
+  $("pname").textContent = "Collection " + addr.slice(0, 6) + "…" + addr.slice(-4);
+  $("pwallet").textContent = addr;
+  $("profile").hidden = false;
 }
 
 async function history(addr) {
@@ -218,7 +229,7 @@ $("demo").onclick = () => { $("addr").value = DEMO; $("f").requestSubmit(); };
 function route() {
   const v = ["explorer", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
   document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
-  document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+  document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v && !a.classList.contains("mark") ? "page" : "false"));
 }
 addEventListener("hashchange", route); route();
 document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
