@@ -21,6 +21,10 @@ Exemples :
     python rules_rescue.py check --target 0x079be...
     python rules_rescue.py migrate --target 0x079be... --to 0xTON_NOUVEAU_WALLET --ids cartes.json
     python rules_rescue.py migrate --target 0x079be... --to 0x... --ids cartes.json --execute
+
+Compte Rules d'origine (jamais migré), avec la clé privée exportée depuis rules.art :
+    python rules_rescue.py find    --target 0xCOMPTE_RULES --rules-key
+    python rules_rescue.py migrate --target 0xCOMPTE_RULES --to 0x... --ids cartes.json --rules-key
 """
 import argparse, asyncio, getpass, hashlib, hmac, json, sys, unicodedata
 
@@ -164,12 +168,14 @@ BIG = ResourceBoundsMapping(
 
 async def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["find", "check", "migrate"])
+    ap.add_argument("cmd", choices=["find", "check", "migrate"])  # find = vérifie seed/clé
     ap.add_argument("--target", required=True, help="adresse qui détient les cartes")
     ap.add_argument("--to", help="wallet de destination (migrate)")
     ap.add_argument("--ids", help="fichier JSON [{id, q}] des cartes (migrate)")
     ap.add_argument("--rpc", help="URL RPC Starknet mainnet")
     ap.add_argument("--execute", action="store_true", help="envoyer vraiment (sinon simulation)")
+    ap.add_argument("--rules-key", action="store_true",
+                    help="compte Rules d'origine : utiliser la clé privée exportée depuis rules.art au lieu d'une seed")
     a = ap.parse_args()
     target = int(a.target, 16)
 
@@ -187,16 +193,36 @@ async def main():
         print("Solde ETH  :", (await balance(client, ETH, target)) / 1e18)
         return
 
-    mnemonic = ask_seed()
-    print("Recherche du compte (calcul local, ~30 s)…")
-    hit = find_account(mnemonic, target)
-    del mnemonic
-    if not hit:
-        sys.exit("Aucun compte Argent X (index 0–19) de cette seed ne donne cette adresse.")
-    idx, name, sk, pk, cls, cd = hit
-    print(f"Trouvé : compte n°{idx}, type {name}.")
-    if a.cmd == "find":
-        return
+    if a.rules_key:
+        raw = getpass.getpass("Clé privée du compte Rules (0x…, saisie masquée) : ").strip()
+        try:
+            sk = int(raw, 16)
+        except ValueError:
+            sys.exit("Clé invalide : elle doit commencer par 0x et ne contenir que 0-9 a-f.")
+        del raw
+        pk = KeyPair.from_private_key(sk).public_key
+        client, url = await get_client(a.rpc)
+        try:
+            onchain = (await client.call_contract(Call(to_addr=target, selector=get_selector_from_name("get_signer_public_key"), calldata=[])))[0]
+        except Exception as e:
+            sys.exit(f"Impossible de lire la clé publique du compte (est-ce bien un compte Rules déployé ?) : {e}")
+        if onchain != pk:
+            sys.exit("Cette clé ne correspond pas au compte Rules indiqué. Rien n'a été envoyé.")
+        print("Clé vérifiée : elle contrôle bien ce compte Rules.")
+        cls, cd = None, None
+        if a.cmd == "find":
+            return
+    else:
+        mnemonic = ask_seed()
+        print("Recherche du compte (calcul local, ~30 s)…")
+        hit = find_account(mnemonic, target)
+        del mnemonic
+        if not hit:
+            sys.exit("Aucun compte Argent X (index 0–19) de cette seed ne donne cette adresse.")
+        idx, name, sk, pk, cls, cd = hit
+        print(f"Trouvé : compte n°{idx}, type {name}.")
+        if a.cmd == "find":
+            return
 
     if not a.to or not a.ids:
         sys.exit("migrate demande --to et --ids.")
