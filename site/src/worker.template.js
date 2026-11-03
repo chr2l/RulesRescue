@@ -173,6 +173,15 @@ export default {
         }
         return json(out);
       }
+      if (u.pathname.startsWith("/ipfs/")) {
+        const cid = u.pathname.slice(6);
+        if (!/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z2-7]{50,60})$/.test(cid)) return new Response("bad cid", { status: 400 });
+        const h = { "user-agent": UA }; const range = req.headers.get("range"); if (range) h.range = range;
+        const r = await fetch("https://gateway.pinata.cloud/ipfs/" + cid, { headers: h, cf: { cacheTtl: 86400 * 30, cacheEverything: true } });
+        const out = new Headers({ "cache-control": "public, max-age=2592000, immutable", "accept-ranges": "bytes" });
+        for (const k of ["content-type", "content-length", "content-range"]) { const v = r.headers.get(k); if (v) out.set(k, v); }
+        return new Response(r.body, { status: r.status, headers: out });
+      }
       if (u.pathname.startsWith("/img/")) {
         const id = u.pathname.slice(5);
         if (!/^\d{1,80}$/.test(id)) return new Response("bad id", { status: 400 });
