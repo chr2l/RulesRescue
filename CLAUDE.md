@@ -12,3 +12,5 @@
 - Worker : routes `/api/cards`, `/api/meta`, `/img/{id}`, `/api/history` (stats d'un compte), `/api/cdx` (Wayback), `/admin`, `/admin/put`.
 - À faire : publier la DA « façon Rules » (commit sur main, pas encore en ligne) ; images HD/GIF via Wayback (429 → requêtes lentes, galerie privée uniquement) ; parcours Braavos non testé.
 - Droits : le dépôt ruleslabs/interface n'a pas de licence → ne reprendre ni logo, ni images, ni sons ; seulement palette et polices Google.
+
+- rtk actif (hook) : sortie Bash compressée auto. Sortie brute : `rtk bypass <cmd>`. Read/Grep/Glob non concernés.
