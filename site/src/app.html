@@ -152,7 +152,6 @@ async function accHistory(addr) {
       [h.cardsReceived, "cartes reçues", "envoyées par d'autres comptes (échanges, achats, migration)"],
       [h.cardsSent, "cartes envoyées", "échanges, ventes ou migration vers un autre compte"],
       [h.packsReceived + h.packsReceivedFromUsers, "packs reçus", ""],
-      [h.mintGroups ? h.mintGroups.packs : 0, "ouvertures de packs probables", "groupes de 3 à 5 cartes créées par Rules à moins de 2 min d'intervalle"],
       [h.packsOpened, "packs brûlés sur la blockchain", "packs détenus sur le compte puis ouverts"],
       [h.partners, "comptes différents", "avec qui des cartes ont circulé"],
       [h.sold, "ventes sur le marché Rules", h.sold ? h.soldEth + " ETH au total" : ""],
@@ -193,7 +192,7 @@ async function chain(addr, h0) {
     + links.map(l => { const h = hist[l.from] || {}; return `<li><a href="?address=${l.from}">${short(l.from)}</a> → ${short(l.to)} : <b>${l.q}</b> objets envoyés (dernier envoi le ${d(l.t)}).`
       + (h.transfers ? ` Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.cardsFromPacks} cartes reçues de Rules · ${h.sold} ventes · ${h.bought} achats.` : "") + "</li>"; }).join("")
     + "</ol>"
-    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, environ ${opens} ouvertures de packs, ${Math.max(0, recv)} cartes reçues d'autres joueurs (hors migrations), ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
+    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, ${all.reduce((x, a) => x + ((hist[a].mintGroups || {}).total || 0), 0)} créations de cartes par Rules (une transaction chacune : les ouvertures de packs se faisaient dans la base de Rules, hors blockchain), ${Math.max(0, recv)} cartes reçues d'autres joueurs (hors migrations), ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
 }
 
 // Badges : paliers par artiste + rareté, et n° de série bas.
