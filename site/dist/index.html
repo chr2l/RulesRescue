@@ -221,7 +221,7 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
   <div class="empty" id="empty" hidden></div>
 </main>
 
-<footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD affichées depuis IPFS (liens inscrits dans le contrat), non hébergées ici ; elles appartiennent à leurs artistes.</footer>
+<footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</footer>
 </section>
 
 <section class="view wrap doc" data-view="tuto" hidden>
@@ -538,7 +538,10 @@ function filtered() {
 const RPC = "https://api.zan.top/public/starknet-mainnet", GW = "https://gateway.pinata.cloud/ipfs/";
 const URI_SEL = "0x2ee3279dd30231650e0b4a1a3516ab3dc26b6d3dfcb6ef20fb4329cfc1213e1";
 const hd = {};
-try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd") || "{}")); } catch (e) {}
+try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd2") || "{}")); } catch (e) {}
+// Copies HD hébergées sur R2 (media.elie.place) : clé = nom de la carte ; DUP départage les homonymes par CID d'image.
+const MEDIA = "https://media.elie.place/", MAN = {"404Billy-Common":"jv","404Billy-holographic":"jv","8ruki-Common":"jv","8ruki-platinium":"jv","Alien-Base-Pack":"p","Azur-Common":"jv","Baby-Neelou-Common":"jv","BabySolo33-Common":"jv","BabySolo33-holographic":"jv","Barz-Base-Pack":"p","Benjamin-Epps-Common-2":"jv","Benjamin-Epps-Common":"jv","Benjamin-Epps-platinium":"jv","Bigflo-Common":"jv","Bigflo-platinium":"jv","Blood-Base-Pack":"p","Caba-J-J-platinium":"jv","Caballero-Common-2":"jv","Caballero-Common":"jv","Caballero-holographic":"jv","Deen-Burbigo-Common-2":"jv","Deen-Burbigo-Common":"jv","Deen-Burbigo-holographic":"jv","Deen-Burbigo-platinium":"jv","Di-Meh-Common":"jv","Doums-Common":"jv","Doums-platinium":"jv","Flem-Common":"jv","HOUDI-Common":"jv","Halloween-Pack":"p","Homerun-Pack":"p","JMK-Common":"jv","JeanJass-Common-2":"jv","JeanJass-Common":"jv","Jewel-Usain-Common":"jv","Jewel-Usain-platinium":"jv","Jwles-Common":"jv","Karmen-Common":"jv","Kerchak-Common-2":"jv","Kerchak-Common":"jv","Launch-Pack-S2":"p","Le-Reglement-Common-2":"jv","Le-Reglement-Common":"jv","Le-Reglement-halloween":"jv","Le-Reglement-holographic":"jv","Le-Reglement-platinium":"jv","Livai-Common":"jv","Lycos-Common":"jv","Magic-Base-Pack":"p","Mahdi-Ba-Common":"jv","Mairo-Common":"jv","Mairo-holographic":"jv","Mehdi-Maizi-Common":"jv","Mirror-Pack":"p","Moji-x-Sboy-Common":"jv","Nunca-Common":"jv","Rad-Cartier-Common":"jv","Rain-Pack":"p","Rainbow-Base-Pack":"p","Roshi-Common":"jv","Rowjay-Common":"jv","San-Pack":"p","Santa-Pack":"p","Selug-enar-Common":"jv","Sheldon-Common-2":"jv","Sheldon-Common":"jv","Skuna-Common":"jv","Slice-Pack":"p","Slimka-Common":"jv","So-La-Lune-Common-2":"jv","So-La-Lune-Common":"jv","Spider-Zed-Common-2":"jv","Spider-Zed-Common":"jv","Spider-Zed-holographic":"jv","Spider-Zed-platinium":"jv","Stony-Stone-Common":"jv","Vladimir-Cauchemar-Common":"jv","Wallace-Cleaver-Common":"jv","Wave-Base-Pack":"p","Winnterzuko-Common-2":"jv","Winnterzuko-Common":"jv","Youv-Dee-Common-2":"jv","Youv-Dee-Common":"jv","Ysos-Common":"jv","Zinee-Common":"jv","Zinee-halloween":"jv","Zinee-platinium":"jv","Zuukou-Mayzie-Common-2":"jv","Zuukou-Mayzie-Common":"jv","Zuukou-Mayzie-halloween":"jv","thaHomey-Common-2":"jv","thaHomey-Common":"jv","Limsa-d-Aulnay-Common":"v"}, DUP = {"Qmd5YEWtV91koQ4mKbdNTGwx8gjRSYSKijYtgogv9ZKmpJ":"Spider-Zed-Common-2","QmS42R7BAVKo3CfurjCnDuPK9e8XSWGsYEP6Z1o6uHkGt6":"Le-Reglement-Common-2","QmVuiq1jG7Xi7NCKJ1P2gfeRJWppnkxjjREWSByHsPPrmC":"Zuukou-Mayzie-Common-2","QmY1JXFmDTtAa6GMF6k3EAShcEUVZiCxPebzKvmcK4hxmK":"Winnterzuko-Common-2","QmSwudLam7WeZusuiFLiSomXQRQwNykbcDhq7Co7GKawtT":"Deen-Burbigo-Common-2","QmXCVRft9AL7eyr3Pu4gHzXCQJNcoixKpXG2pc6msXUfBc":"Youv-Dee-Common-2","QmaVgGP2vYeDQonha3cFe3AcuRskTovNyFsb74add7YysD":"Caballero-Common-2","QmZ7V8w1GY6Bc6bDMAq3fYn1TDEB895EKoSYSgAobhX9MU":"thaHomey-Common-2","QmcALYcVSqi5ougu3WPM3S7rQAAPLVXj9nPFJT6TK6gz6z":"Kerchak-Common-2","QmXsbra2wwbaUQ5X6i5wLwct3Mzw2KLuXYihyD3PRfeMrS":"Benjamin-Epps-Common-2","QmNpvF1JhYmdT3d8W842YPAxhmgMDRr55ReK42jUhT2F9f":"So-La-Lune-Common-2","Qmdk7pdWdQ4ZJJ9bawy1uDMEt4LMaHZbKCxuQbF4rpvHCL":"Sheldon-Common-2","QmSPXUyJrq48KiGJhUoWvDPUK8vUec5RG4ntUUkaoEgUsX":"JeanJass-Common-2"};
+const slug = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const ipfs = u => u && u.startsWith("ipfs://") ? GW + u.slice(7) : u;
 async function hdMeta(id) {
   if (hd[id]) return hd[id];
@@ -546,7 +549,11 @@ async function hdMeta(id) {
   const r = await (await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "starknet_call", params: { request: { contract_address: CONTRACT, entry_point_selector: URI_SEL, calldata: ["0x" + (b & M).toString(16), "0x" + (b >> 128n).toString(16)] }, block_id: "latest" } }) })).json();
   const str = r.result.slice(1).map(f => { let h = BigInt(f).toString(16); if (h.length % 2) h = "0" + h; return h.match(/../g).map(c => String.fromCharCode(parseInt(c, 16))).join(""); }).join("");
   const m = JSON.parse(atob(str.replace(/^data:application\/json;base64,/, "")));
-  return hd[id] = { img: ipfs(m.image), anim: ipfs(m.animation_url) || null };
+  const cid = (m.image || "").slice(7), key = DUP[cid] || slug((m.name || "").replace(/ #\d+$/, "")), f = MAN[key] || "";
+  return hd[id] = {
+    img: /[jp]/.test(f) ? MEDIA + "images/" + key + (f.includes("p") ? ".png" : ".jpg") : ipfs(m.image),
+    anim: f.includes("v") ? MEDIA + "videos/" + key + ".mp4" : ipfs(m.animation_url) || null,
+  };
 }
 function upgrade(id) {
   const h = hd[id]; if (!h) return;
@@ -554,7 +561,7 @@ function upgrade(id) {
 }
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return; io.unobserve(e.target);
-  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
+  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd2", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
 }), { rootMargin: "400px" });
 const srcOf = d => hd[d.id] ? hd[d.id].img : "/img/" + d.id;
 function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
