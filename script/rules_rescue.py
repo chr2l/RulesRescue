@@ -22,9 +22,15 @@ Exemples :
     python rules_rescue.py migrate --target 0x079be... --to 0xTON_NOUVEAU_WALLET --ids cartes.json
     python rules_rescue.py migrate --target 0x079be... --to 0x... --ids cartes.json --execute
 
-Comptes Rules d'origine (jamais migrés) : bloqués, voir --rules-key et le guide.
+Comptes Rules d'origine (jamais migrés) : --rules-key. Le compte ne peut plus
+signer de transaction (il n'accepte que la v1, refusée par le réseau), mais il
+peut encore signer un message hors ligne. Le script signe un « ordre » de la
+marketplace Rules (carte contre 0 STRK) ; ton nouveau wallet l'exécute, et le
+contrat des cartes laisse la marketplace transférer sans approbation.
+    python rules_rescue.py check   --target 0xCOMPTE_RULES --rules-key
+    python rules_rescue.py migrate --target 0xCOMPTE_RULES --to 0xWALLET --ids cartes.json --rules-key
 """
-import argparse, asyncio, getpass, hashlib, hmac, json, sys, unicodedata
+import argparse, asyncio, getpass, hashlib, hmac, json, secrets, sys, time, unicodedata
 
 from starknet_py.hash.address import compute_address
 from starknet_py.hash.selector import get_selector_from_name
@@ -33,9 +39,13 @@ from starknet_py.net.full_node_client import FullNodeClient
 from starknet_py.net.account.account import Account
 from starknet_py.net.models import StarknetChainId
 from starknet_py.net.client_models import Call, ResourceBounds, ResourceBoundsMapping
+from starknet_py.hash.utils import pedersen_hash, message_signature, private_to_stark_key
+from starknet_py.cairo.felt import encode_shortstring
 
 RULES_CARDS = 0x05B456031650C1DE9EEC123D3E7D06A684D321A346D4A7CAC9FD86C2B77CF70F
 STRK = 0x04718F5A0FC34CC1AF16A1CDEE98FFB20C31F5CD61D6AB07201858F4287C938D
+# Marketplace Rules (ruleslabs/marketplace) : le contrat des cartes l'autorise à transférer sans approbation.
+RULES_MARKET = 0x01FEA6C39F413EE5A5D81704E4FC45D814C86711947B2973F8DF2A733D6D9937
 ETH = 0x049D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7
 RPCS = [
     "https://api.zan.top/public/starknet-mainnet",
@@ -158,6 +168,124 @@ def transfer_calls(frm, to, items, chunk=40):
         calls.append(Call(to_addr=RULES_CARDS, selector=sel, calldata=cd))
     return calls
 
+# --- Comptes Rules d'origine : ordres signés hors ligne (marketplace Rules) ---
+# Reproduit ruleslabs/marketplace src/marketplace/order.cairo + starknet-messages typed_data.cairo.
+# Vérifié contre le vecteur de test ORDER_HASH_1 / ORDER_SIGNATURE_1 du dépôt.
+SS = encode_shortstring
+U256_T = 0x1094260A770342332E6A73E9256B901D484A438925316205B4B6FF25DF4A97A
+ITEM_T = 0x2F28211A4B264A061FC03D701A04B11E2A0A6D97C4F26FD564B3AF79DFB9C1D
+ORDER_T = 0xF5CB0008CCF4DF0EA7C494DC3453108B2CC44F5BAAC3214BAB30FBFBE1BF40
+DOMAIN_T = 0x38938178EBDF241A3764698E540EAD3E19ED2FB6120E27429961A2378E8B51
+
+def _chain(*xs):
+    h = 0
+    for x in xs: h = pedersen_hash(h, x)
+    return pedersen_hash(h, len(xs))
+
+def _hu(x): return _chain(U256_T, x & ((1 << 128) - 1), x >> 128)
+
+def order_hash(offerer, card_id, qty, cons_token, cons_amount, end_time, salt, chain_id=SS("SN_MAIN")):
+    offer = _chain(ITEM_T, RULES_CARDS, _hu(card_id), _hu(qty), 3)
+    cons = _chain(ITEM_T, cons_token, _hu(0), _hu(cons_amount), 1)
+    msg = _chain(ORDER_T, offer, cons, end_time, salt)
+    dom = _chain(DOMAIN_T, SS("Rules Marketplace"), chain_id, SS("1.0"))
+    return _chain(SS("StarkNet Message"), dom, offerer, msg)
+
+def order_calldata(card_id, qty, cons_token, cons_amount, end_time, salt):
+    # Item::ERC1155 = variante 3, Item::ERC20 = variante 1
+    return [3, RULES_CARDS, *u256(card_id), *u256(qty), 1, cons_token, *u256(cons_amount), end_time, salt]
+
+def rescue_calls(offerer, sk, items, end_time, cons_token=STRK, chunk=20):
+    """Un fulfill_order par carte, signé avec la clé Rules ; regroupés par lots."""
+    sel = get_selector_from_name("fulfill_order")
+    calls = []
+    for card_id, qty in items:
+        salt = secrets.randbits(250)
+        h = order_hash(offerer, card_id, qty, cons_token, 0, end_time, salt)
+        r, s_ = message_signature(h, sk)
+        calls.append(Call(to_addr=RULES_MARKET, selector=sel,
+                          calldata=[offerer, *order_calldata(card_id, qty, cons_token, 0, end_time, salt), 2, r, s_]))
+    return [calls[k:k + chunk] for k in range(0, len(calls), chunk)]
+
+async def view(client, to, name, cd=()):
+    return await client.call_contract(Call(to_addr=to, selector=get_selector_from_name(name), calldata=list(cd)))
+
+def ask_key(label):
+    k = getpass.getpass(f"{label} (0x…, saisie masquée) : ").strip()
+    try: return int(k, 16)
+    except ValueError: sys.exit("Clé invalide (attendu : nombre hexadécimal 0x…).")
+
+async def rules_check(client, target, sk=None):
+    """Vérifie que le compte est un compte Rules, que la clé correspond et que la marketplace est toujours branchée."""
+    ok = True
+    try:
+        v = (await view(client, target, "get_version"))[0]
+        print("Version du compte :", bytes.fromhex(f"{v:x}").decode(errors="replace"))
+    except Exception as e:
+        print("get_version a échoué (compte non déployé ou pas un compte Rules) :", type(e).__name__); ok = False
+    try:
+        pk = (await view(client, target, "get_signer_public_key"))[0]
+        print("Clé publique du compte :", hex(pk))
+        if sk is not None:
+            mine = private_to_stark_key(sk)
+            print("Clé fournie :", "CORRESPOND" if mine == pk else f"NE CORRESPOND PAS ({hex(mine)})")
+            ok = ok and mine == pk
+    except Exception as e:
+        print("get_signer_public_key a échoué :", type(e).__name__); ok = False
+    m = (await view(client, RULES_CARDS, "marketplace"))[0]
+    print("Marketplace autorisée par le contrat des cartes :", hex(m), "(OK)" if m == RULES_MARKET else "(DIFFÉRENTE, la méthode ne marchera pas)")
+    try:
+        print("Classe de la marketplace :", hex(await client.get_class_hash_at(RULES_MARKET)))
+    except Exception:
+        print("Marketplace introuvable on-chain."); ok = False
+    return ok and m == RULES_MARKET
+
+async def rules_migrate(a, client, target, to, items):
+    sk = ask_key("Clé privée exportée de rules.art")
+    if not await rules_check(client, target, sk):
+        sys.exit("Vérifications échouées : rien n'a été signé.")
+    blk = await client.get_block("latest")
+    end_time = blk.timestamp + 3600 * 6   # ordres valables 6 h seulement
+    batches = rescue_calls(target, sk, items, end_time)
+    del sk
+    print(f"{len(items)} ordres signés hors ligne, valables jusqu'à {time.strftime('%d/%m %H:%M', time.localtime(end_time))}, "
+          f"{len(batches)} transaction(s) depuis {hex(to)}.")
+    try:
+        await client.get_class_hash_at(to)
+    except Exception:
+        sys.exit("Le wallet de destination n'est pas déployé : fais une première transaction avec (ou déploie-le dans Ready) puis relance.")
+
+    if not a.execute:
+        # Simulation sans la clé du wallet : signature ignorée (skip_validate), aucun frais, rien n'est envoyé.
+        dummy = Account(address=to, client=client, key_pair=KeyPair.from_private_key(1), chain=StarknetChainId.MAINNET)
+        nonce = await dummy.get_nonce(); txs = []
+        for b in batches:
+            txs.append(await dummy.sign_invoke_v3(calls=b, nonce=nonce, resource_bounds=BIG)); nonce += 1
+        print(f"Simulation de {len(txs)} transaction(s) depuis le wallet de destination…")
+        try:
+            res = await client.simulate_transactions(transactions=txs, skip_validate=True, skip_fee_charge=True)
+        except Exception as e:
+            sys.exit(f"SIMULATION REFUSÉE par le réseau :\n{e}")
+        total = 0
+        for i, r in enumerate(res):
+            rev = getattr(getattr(r.transaction_trace, "execute_invocation", None), "revert_reason", None)
+            fee = r.fee_estimation.overall_fee; total += fee
+            print(f"  tx {i}: {'ÉCHEC – ' + str(rev) if rev else 'OK'}  (frais estimés {fee/1e18:.4f} STRK)")
+        print(f"Frais totaux estimés : {total/1e18:.4f} STRK, payés par le wallet de destination. "
+              "Les ordres de cette simulation sont jetés ; --execute en signe de nouveaux.")
+        return
+
+    if input(f"Taper OUI pour transférer les cartes vers {hex(to)} : ").strip() != "OUI":
+        sys.exit("Annulé.")
+    dk = ask_key("Clé privée du wallet de destination (Ready : Paramètres > Compte > Exporter la clé privée)")
+    acc = Account(address=to, client=client, key_pair=KeyPair.from_private_key(dk), chain=StarknetChainId.MAINNET)
+    del dk
+    for k, b in enumerate(batches):
+        r = await acc.execute_v3(calls=b, auto_estimate=True)
+        await client.wait_for_tx(r.transaction_hash)
+        print(f"  lot {k + 1}/{len(batches)} transféré : {hex(r.transaction_hash)}")
+    print("Terminé. Vérifie sur https://voyager.online/contract/" + hex(to))
+
 BIG = ResourceBoundsMapping(
     l1_gas=ResourceBounds(max_amount=10**5, max_price_per_unit=10**14),
     l1_data_gas=ResourceBounds(max_amount=10**5, max_price_per_unit=10**14),
@@ -177,6 +305,11 @@ async def main():
     a = ap.parse_args()
     target = int(a.target, 16)
 
+    if a.cmd == "check" and a.rules_key:
+        client, url = await get_client(a.rpc); print("RPC :", url)
+        print("Méthode marketplace :", "possible" if await rules_check(client, target) else "IMPOSSIBLE")
+        return
+
     if a.cmd == "check":
         client, url = await get_client(a.rpc); print("RPC :", url)
         try:
@@ -192,9 +325,13 @@ async def main():
         return
 
     if a.rules_key:
-        sys.exit("Comptes Rules d'origine : bloqués. Leur contrat (classe 0x01c644…) refuse les transactions v3 "
-                 "('Account: invalid tx version') et Starknet n'accepte plus les transactions v1 (testé le 30/10/2026). "
-                 "Même avec la clé exportée, les cartes ne peuvent plus en sortir. Voir le guide sur rules.elie.place.")
+        if a.cmd != "migrate":
+            sys.exit("Avec --rules-key : utilise check (vérifie le compte et la clé) ou migrate.")
+        if not a.to or not a.ids:
+            sys.exit("migrate demande --to et --ids.")
+        client, url = await get_client(a.rpc); print("RPC :", url)
+        await rules_migrate(a, client, target, int(a.to, 16), load_ids(a.ids))
+        return
     else:
         mnemonic = ask_seed()
         print("Recherche du compte (calcul local, ~30 s)…")
