@@ -10,7 +10,10 @@
 ## Publication & état (30/10/2026)
 - Le HTML vit dans le KV `rules-rescue-site` (id df3fe9d9f39849b18b314f741a41b420), clés `html` et `script`. Publier : `python site/build.py`, puis écrire `site/dist/index.html` dans la clé `html` (API Cloudflare KV ou page `/admin?t=<ADMIN_TOKEN>#<base64 JSON {html,script}>`). Ne jamais committer le jeton.
 - Worker : routes `/api/cards`, `/api/meta`, `/img/{id}`, `/api/history` (stats d'un compte), `/api/cdx` (Wayback), `/admin`, `/admin/put`.
-- À faire : publier la DA « façon Rules » (commit sur main, pas encore en ligne) ; images HD/GIF via Wayback (429 → requêtes lentes, galerie privée uniquement) ; parcours Braavos non testé.
+- Médias HD : bucket R2 `rules-assets` servi sur media.elie.place (Access bypass) ; correspondance par nom de carte dans `MAN`/`DUP` (app.html), Pinata en secours.
+- `/moi` : profil privé (collection Ready), protégé par l'app Cloudflare Access « rules.elie.place/moi » ; le worker refuse sans en-tête Access.
+- Ne jamais nommer une fonction globale `history` (écrase window.history).
+- À faire : parcours Braavos non testé.
 - Droits : le dépôt ruleslabs/interface n'a pas de licence → ne reprendre ni logo, ni images, ni sons ; seulement palette et polices Google.
 
 - rtk actif (hook) : sortie Bash compressée auto. Sortie brute : `rtk bypass <cmd>`. Read/Grep/Glob non concernés.

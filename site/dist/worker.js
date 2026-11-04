@@ -192,7 +192,13 @@ export default {
       }
       if (u.pathname === "/rules_rescue.py") return new Response(await env.SITE.get("script") || "# indisponible", { headers: { "content-type": "text/x-python; charset=utf-8", "content-disposition": "attachment; filename=rules_rescue.py" } });
       if (u.pathname === "/robots.txt") return new Response("User-agent: *\nAllow: /\n", { headers: { "content-type": "text/plain" } });
-      if (u.pathname === "/" || u.pathname === "/index.html") return new Response(await env.SITE.get("html") || "Site en cours de mise à jour.", { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+      // Page profil privée : protégée en amont par Cloudflare Access (application rules.elie.place/moi).
+      if (u.pathname === "/moi") {
+        if (!req.headers.get("cf-access-authenticated-user-email")) return new Response("Accès réservé.", { status: 403 });
+        const html = (await env.SITE.get("html") || "").replace("</head>", '<script>window.RR_ME="0xADMIN_ADDR";</script></head>');
+        return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
+      }
+      if (u.pathname === "/" || u.pathname === "/index.html") return new Response(await env.SITE.get("html") || "Site en cours de mise à jour.", { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" } });
       return new Response("Not found", { status: 404 });
     } catch (e) {
       return json({ error: String(e.message || e) }, 502);
