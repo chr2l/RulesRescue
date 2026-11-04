@@ -1,5 +1,5 @@
 <div class="unoff" role="note">Archive <b>non officielle</b>, faite par un ancien joueur. Sans lien avec Rules Labs. Aucune connexion de wallet, aucune signature.</div>
-<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge">Non officiel</span><span class="sp"></span><a href="#explorer">Collection</a><a href="#tuto">Tuto</a><a href="#outil">Outil</a></div></nav>
+<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge">Non officiel</span><span class="sp"></span><a href="#explorer">Collection</a><a href="#dex">Dex</a><a href="#tuto">Tuto</a><a href="#outil">Outil</a></div></nav>
 
 <section class="view" data-view="explorer">
 <header class="wrap">
@@ -42,11 +42,24 @@
 </div>
 
 <main class="wrap">
+  <div class="badges" id="badges" hidden></div>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden></div>
 </main>
 
 <footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</footer>
+</section>
+
+<section class="view wrap" data-view="dex" hidden>
+  <header><div class="brand">Toutes les cartes Rules · Starknet</div><h2 class="doc-h">Dex</h2>
+  <p class="sub" id="dexInfo">Chargement…</p></header>
+  <div class="dexbar">
+    <div class="seg" id="dexOwn" role="group" aria-label="Possession"><button type="button" data-v="all" aria-pressed="true">Toutes</button><button type="button" data-v="own" aria-pressed="false">Possédées</button><button type="button" data-v="miss" aria-pressed="false">Manquantes</button></div>
+    <select id="dexRar" aria-label="Rareté"><option value="all">Toutes raretés</option><option value="C">Common</option><option value="H">Holographic</option><option value="P">Platinium</option><option value="W">Halloween</option></select>
+    <select id="dexSeason" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
+    <select id="dexSort" aria-label="Tri"><option value="artist">Tri : artiste</option><option value="rar">Tri : rareté</option><option value="season">Tri : saison</option><option value="owned">Tri : possédées d'abord</option><option value="supply">Tri : tirage (plus rares d'abord)</option></select>
+  </div>
+  <div class="grid" id="dexGrid"></div>
 </section>
 
 __GUIDE__
@@ -109,7 +122,7 @@ async function load(addr) {
       return m ? { ...m, q: x.q, i } : { id: x.id, a: "Carte non identifiée", r: "C", n: serial, s: 0, q: x.q, i };
     });
     $("status").innerHTML = `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`;
-    stats(); fillArtists(); $("bar").hidden = false; render();
+    stats(); badges(); fillArtists(); $("bar").hidden = false; render(); renderDex();
   } catch (e) {
     $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
   }
@@ -139,7 +152,8 @@ async function accHistory(addr) {
       [h.cardsReceived, "cartes reçues", "envoyées par d'autres comptes (échanges, achats, migration)"],
       [h.cardsSent, "cartes envoyées", "échanges, ventes ou migration vers un autre compte"],
       [h.packsReceived + h.packsReceivedFromUsers, "packs reçus", ""],
-      [h.packsOpened, "packs ouverts sur la blockchain", "la plupart des ouvertures se faisaient dans l'appli Rules"],
+      [h.mintGroups ? h.mintGroups.packs : 0, "ouvertures de packs probables", "groupes de 3 à 5 cartes créées par Rules à moins de 2 min d'intervalle"],
+      [h.packsOpened, "packs brûlés sur la blockchain", "packs détenus sur le compte puis ouverts"],
       [h.partners, "comptes différents", "avec qui des cartes ont circulé"],
       [h.sold, "ventes sur le marché Rules", h.sold ? h.soldEth + " ETH au total" : ""],
       [h.bought, "achats sur le marché Rules", h.bought ? h.boughtEth + " ETH au total" : ""],
@@ -174,12 +188,62 @@ async function chain(addr, h0) {
   const sum = k => all.reduce((x, a) => x + (Number(hist[a][k]) || 0), 0);
   const eth = k => all.reduce((x, a) => x + (parseFloat(hist[a][k]) || 0), 0).toFixed(4);
   const first = Math.min(...all.map(a => hist[a].firstActivity || Infinity));
+  const opens = all.reduce((x, a) => x + ((hist[a].mintGroups || {}).packs || 0), 0), recv = sum("cardsReceived") - links.reduce((x, l) => x + l.q, 0);
   el.innerHTML = '<h3 class="sub">Comptes d\'origine</h3><ol class="plain">'
     + links.map(l => { const h = hist[l.from] || {}; return `<li><a href="?address=${l.from}">${short(l.from)}</a> → ${short(l.to)} : <b>${l.q}</b> objets envoyés (dernier envoi le ${d(l.t)}).`
       + (h.transfers ? ` Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.cardsFromPacks} cartes reçues de Rules · ${h.sold} ventes · ${h.bought} achats.` : "") + "</li>"; }).join("")
     + "</ol>"
-    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, ${sum("packsOpened")} packs ouverts sur la blockchain, ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
+    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, environ ${opens} ouvertures de packs, ${Math.max(0, recv)} cartes reçues d'autres joueurs (hors migrations), ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
 }
+
+// Badges : paliers par artiste + rareté, et n° de série bas.
+const star = (bg, fg) => `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g50" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a8"/><stop offset="1" stop-color="#ffc1e3"/></linearGradient></defs><circle cx="20" cy="20" r="19" fill="${bg}"/><path d="M20 7.5l3.7 7.6 8.4 1.2-6.1 5.9 1.4 8.3L20 26.6l-7.5 3.9 1.4-8.3-6.1-5.9 8.4-1.2z" fill="${fg}"/></svg>`;
+const TIERS = [[50, star("url(#g50)", "#111"), "50"], [20, star("#9f04dc", "#fff"), "20"], [10, star("#e53935", "#fff"), "10"], [5, star("#f5c518", "#fff"), "5"]];
+const BADGE = { hash: `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="gh" cx=".45" cy=".4" r=".65"><stop offset="0" stop-color="#3bd16f"/><stop offset="1" stop-color="#159a3e"/></radialGradient></defs><circle cx="20" cy="20" r="19" fill="url(#gh)"/><path d="M16 9l-1.6 22M25.6 9L24 31M10 16h21M9 24.5h21" stroke="#fff" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg>` };
+const lowSerial = d => (d.r === "H" || d.r === "P") ? d.n > 0 && d.n < 25 : (d.r === "C" || d.r === "W") ? d.n > 0 && d.n < 250 : false;
+function badges() {
+  const groups = {};
+  items.filter(d => d.r !== "K").forEach(d => { const k = d.a + "|" + d.r; (groups[k] = groups[k] || { a: d.a, r: d.r, q: 0, low: [] }).q += d.q; if (lowSerial(d)) groups[k].low.push(d.n); });
+  const earned = [];
+  for (const g of Object.values(groups)) {
+    const t = TIERS.find(([n]) => g.q >= n);
+    if (t) earned.push(`<div class="bdg" title="${esc(g.a)} · ${RN[g.r]} : ${g.q} cartes">${t[1]}<span><b>${esc(g.a)}</b><small>${RN[g.r]} · ${g.q} cartes (palier ${t[2]})</small></span></div>`);
+    if (g.low.length) earned.push(`<div class="bdg" title="N° de série bas">${BADGE.hash}<span><b>${esc(g.a)}</b><small>${RN[g.r]} · n° ${g.low.sort((x, y) => x - y).slice(0, 4).join(", ")}</small></span></div>`);
+  }
+  $("badges").hidden = !earned.length;
+  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">Étoile : 5, 10, 20 ou 50 cartes d'un même artiste dans la même rareté. # : n° de série sous 25 (holo, platinium) ou sous 250 (common, halloween).</p>` : "";
+}
+
+// Dex : tous les modèles de cartes (liste construite depuis les événements de création du contrat).
+let dex = null; const dexState = { own: "all", rar: "all", season: "all", sort: "artist" };
+async function loadDex() {
+  if (!dex) {
+    try { dex = await (await fetch("/api/dex")).json(); } catch (e) { $("dexInfo").textContent = "Dex indisponible pour l'instant."; return; }
+  }
+  renderDex();
+  const todo = dex.filter(x => !hd[x.id]);
+  for (let k = 0; k < todo.length; k += 8) {
+    await Promise.all(todo.slice(k, k + 8).map(x => hdMeta(x.id).catch(() => {})));
+    if (k % 40 === 0) renderDex();
+  }
+  try { localStorage.setItem("rr_hd3", JSON.stringify(hd)); } catch (x) {}
+  renderDex();
+}
+function renderDex() {
+  if (!dex) return;
+  const M = (1n << 128n) - 1n, owned = {};
+  items.forEach(d => { const lo = (BigInt(d.id) & M).toString(16); owned[lo] = (owned[lo] || 0) + d.q; });
+  const L = dex.map(x => { const h = hd[x.id] || {}; return { ...x, a: h.a || "…", r: h.r || "C", s: h.s || 0, q: owned[x.m] || 0 }; })
+    .filter(x => x.r !== "K" || dexState.rar === "all")
+    .filter(x => (dexState.own === "all" || (dexState.own === "own") === (x.q > 0)) && (dexState.rar === "all" || x.r === dexState.rar) && (dexState.season === "all" || String(x.s) === dexState.season));
+  const by = { artist: (x, y) => x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r] || x.s - y.s, rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"), season: (x, y) => x.s - y.s || x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r], owned: (x, y) => (y.q > 0) - (x.q > 0) || x.a.localeCompare(y.a, "fr"), supply: (x, y) => x.n - y.n || x.a.localeCompare(y.a, "fr") }[dexState.sort];
+  L.sort(by);
+  const nOwn = dex.filter(x => owned[x.m]).length;
+  $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} modèles possédés dans la collection chargée.` : `${dex.length} modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.`;
+  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.q ? `<span class="qty">×${x.q}</span>` : ""}</div><div class="meta"><strong>${esc(x.a)}</strong><span><em class="pill r-${x.r}">${RN[x.r]}</em> S${x.s || "?"} · ${x.n} créées</span></div></div>`).join("");
+}
+$("dexOwn").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; dexState.own = b.dataset.v; document.querySelectorAll("#dexOwn button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderDex(); });
+for (const [id, k] of [["dexRar", "rar"], ["dexSeason", "season"], ["dexSort", "sort"]]) $(id).addEventListener("change", e => { dexState[k] = e.target.value; renderDex(); });
 
 function stats() {
   const cards = items.filter(d => d.r !== "K");
@@ -217,7 +281,8 @@ function filtered() {
 const RPC = "https://api.zan.top/public/starknet-mainnet", GW = "https://gateway.pinata.cloud/ipfs/";
 const URI_SEL = "0x2ee3279dd30231650e0b4a1a3516ab3dc26b6d3dfcb6ef20fb4329cfc1213e1";
 const hd = {};
-try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd2") || "{}")); } catch (e) {}
+try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd3") || "{}")); } catch (e) {}
+const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W" };
 // Copies HD hébergées sur R2 (media.elie.place) : clé = nom de la carte ; DUP départage les homonymes par CID d'image.
 const MEDIA = "https://media.elie.place/", MAN = {"404Billy-Common":"jv","404Billy-holographic":"jv","8ruki-Common":"jv","8ruki-platinium":"jv","Alien-Base-Pack":"p","Azur-Common":"jv","Baby-Neelou-Common":"jv","BabySolo33-Common":"jv","BabySolo33-holographic":"jv","Barz-Base-Pack":"p","Benjamin-Epps-Common-2":"jv","Benjamin-Epps-Common":"jv","Benjamin-Epps-platinium":"jv","Bigflo-Common":"jv","Bigflo-platinium":"jv","Blood-Base-Pack":"p","Caba-J-J-platinium":"jv","Caballero-Common-2":"jv","Caballero-Common":"jv","Caballero-holographic":"jv","Deen-Burbigo-Common-2":"jv","Deen-Burbigo-Common":"jv","Deen-Burbigo-holographic":"jv","Deen-Burbigo-platinium":"jv","Di-Meh-Common":"jv","Doums-Common":"jv","Doums-platinium":"jv","Flem-Common":"jv","HOUDI-Common":"jv","Halloween-Pack":"p","Homerun-Pack":"p","JMK-Common":"jv","JeanJass-Common-2":"jv","JeanJass-Common":"jv","Jewel-Usain-Common":"jv","Jewel-Usain-platinium":"jv","Jwles-Common":"jv","Karmen-Common":"jv","Kerchak-Common-2":"jv","Kerchak-Common":"jv","Launch-Pack-S2":"p","Le-Reglement-Common-2":"jv","Le-Reglement-Common":"jv","Le-Reglement-halloween":"jv","Le-Reglement-holographic":"jv","Le-Reglement-platinium":"jv","Livai-Common":"jv","Lycos-Common":"jv","Magic-Base-Pack":"p","Mahdi-Ba-Common":"jv","Mairo-Common":"jv","Mairo-holographic":"jv","Mehdi-Maizi-Common":"jv","Mirror-Pack":"p","Moji-x-Sboy-Common":"jv","Nunca-Common":"jv","Rad-Cartier-Common":"jv","Rain-Pack":"p","Rainbow-Base-Pack":"p","Roshi-Common":"jv","Rowjay-Common":"jv","San-Pack":"p","Santa-Pack":"p","Selug-enar-Common":"jv","Sheldon-Common-2":"jv","Sheldon-Common":"jv","Skuna-Common":"jv","Slice-Pack":"p","Slimka-Common":"jv","So-La-Lune-Common-2":"jv","So-La-Lune-Common":"jv","Spider-Zed-Common-2":"jv","Spider-Zed-Common":"jv","Spider-Zed-holographic":"jv","Spider-Zed-platinium":"jv","Stony-Stone-Common":"jv","Vladimir-Cauchemar-Common":"jv","Wallace-Cleaver-Common":"jv","Wave-Base-Pack":"p","Winnterzuko-Common-2":"jv","Winnterzuko-Common":"jv","Youv-Dee-Common-2":"jv","Youv-Dee-Common":"jv","Ysos-Common":"jv","Zinee-Common":"jv","Zinee-halloween":"jv","Zinee-platinium":"jv","Zuukou-Mayzie-Common-2":"jv","Zuukou-Mayzie-Common":"jv","Zuukou-Mayzie-halloween":"jv","thaHomey-Common-2":"jv","thaHomey-Common":"jv","Limsa-d-Aulnay-Common":"v"}, DUP = {"Qmd5YEWtV91koQ4mKbdNTGwx8gjRSYSKijYtgogv9ZKmpJ":"Spider-Zed-Common-2","QmS42R7BAVKo3CfurjCnDuPK9e8XSWGsYEP6Z1o6uHkGt6":"Le-Reglement-Common-2","QmVuiq1jG7Xi7NCKJ1P2gfeRJWppnkxjjREWSByHsPPrmC":"Zuukou-Mayzie-Common-2","QmY1JXFmDTtAa6GMF6k3EAShcEUVZiCxPebzKvmcK4hxmK":"Winnterzuko-Common-2","QmSwudLam7WeZusuiFLiSomXQRQwNykbcDhq7Co7GKawtT":"Deen-Burbigo-Common-2","QmXCVRft9AL7eyr3Pu4gHzXCQJNcoixKpXG2pc6msXUfBc":"Youv-Dee-Common-2","QmaVgGP2vYeDQonha3cFe3AcuRskTovNyFsb74add7YysD":"Caballero-Common-2","QmZ7V8w1GY6Bc6bDMAq3fYn1TDEB895EKoSYSgAobhX9MU":"thaHomey-Common-2","QmcALYcVSqi5ougu3WPM3S7rQAAPLVXj9nPFJT6TK6gz6z":"Kerchak-Common-2","QmXsbra2wwbaUQ5X6i5wLwct3Mzw2KLuXYihyD3PRfeMrS":"Benjamin-Epps-Common-2","QmNpvF1JhYmdT3d8W842YPAxhmgMDRr55ReK42jUhT2F9f":"So-La-Lune-Common-2","Qmdk7pdWdQ4ZJJ9bawy1uDMEt4LMaHZbKCxuQbF4rpvHCL":"Sheldon-Common-2","QmSPXUyJrq48KiGJhUoWvDPUK8vUec5RG4ntUUkaoEgUsX":"JeanJass-Common-2"};
 const slug = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -229,7 +294,9 @@ async function hdMeta(id) {
   const str = r.result.slice(1).map(f => { let h = BigInt(f).toString(16); if (h.length % 2) h = "0" + h; return h.match(/../g).map(c => String.fromCharCode(parseInt(c, 16))).join(""); }).join("");
   const m = JSON.parse(atob(str.replace(/^data:application\/json;base64,/, "")));
   const cid = (m.image || "").slice(7), key = DUP[cid] || slug((m.name || "").replace(/ #\d+$/, "")), f = MAN[key] || "";
+  const at = {}; (m.attributes || []).forEach(x => at[(x.trait_type || "").toLowerCase()] = x.value);
   return hd[id] = {
+    a: at.artist || (m.name || "").replace(/ #\d+$/, ""), r: RAR[(at.rarity || "").toLowerCase()] || (at.artist ? "C" : "K"), s: Number(at.season || 1),
     img: /[jp]/.test(f) ? MEDIA + "images/" + key + (f.includes("p") ? ".png" : ".jpg") : ipfs(m.image),
     anim: f.includes("v") ? MEDIA + "videos/" + key + ".mp4" : ipfs(m.animation_url) || null,
   };
@@ -240,7 +307,7 @@ function upgrade(id) {
 }
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return; io.unobserve(e.target);
-  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd2", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
+  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd3", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
 }), { rootMargin: "400px" });
 const srcOf = d => hd[d.id] ? hd[d.id].img : "/img/" + d.id;
 function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
@@ -250,7 +317,7 @@ function render() {
     <button class="card" type="button" data-k="${k}" data-id="${d.id}">
       <div class="frame ${frameCls(d)}">
         <img src="${srcOf(d)}" ${hd[d.id] ? 'data-hd="1"' : ""} onerror="if(this.dataset.hd){this.removeAttribute('data-hd');this.src='/img/${d.id}'}" alt="${esc(d.r === "K" ? d.a : d.a + " " + RN[d.r] + " n°" + d.n)}" loading="lazy" decoding="async">
-        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}
+        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}${lowSerial(d) ? `<span class="lowser" title="N° de série bas">${BADGE.hash}</span>` : ""}
       </div>
       <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : "#" + d.n + " ·"} S${d.s}</span></div>
     </button>`).join("");
@@ -303,7 +370,8 @@ $("f").addEventListener("submit", e => {
 $("demo").onclick = () => { $("addr").value = DEMO; $("f").requestSubmit(); };
 
 function route() {
-  const v = ["explorer", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
+  const v = ["explorer", "dex", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
+  if (v === "dex") loadDex();
   document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
   document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v && !a.classList.contains("mark") ? "page" : "false"));
 }

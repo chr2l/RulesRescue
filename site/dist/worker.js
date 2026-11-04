@@ -104,18 +104,23 @@ async function history(addr) {
     path = j.pagination && j.pagination.next ? j.pagination.next : null;
   }
   const s = { transfers: tr.length, packsReceived: 0, packsOpened: 0, cardsFromPacks: 0, cardsReceived: 0, cardsSent: 0, packsSent: 0, packsReceivedFromUsers: 0, firstActivity: null, lastActivity: null, partners: 0 };
-  const partners = new Set(), src = new Map();
+  const partners = new Set(), src = new Map(); const mints = [];
   for (const t of tr) {
     const q = Number(t.quantity || 1), pack = BigInt(t.tokenId) < (1n << 64n);
     const from = BigInt(t.fromAddress), to = BigInt(t.toAddress);
     const ts = t.timestamp; if (!s.firstActivity || ts < s.firstActivity) s.firstActivity = ts; if (!s.lastActivity || ts > s.lastActivity) s.lastActivity = ts;
-    if (to === me && from === 0n) { if (pack) s.packsReceived += q; else s.cardsFromPacks += q; }
+    if (to === me && from === 0n) { if (pack) s.packsReceived += q; else { s.cardsFromPacks += q; mints.push([ts, q]); } }
     else if (from === me && to === 0n) { if (pack) s.packsOpened += q; }
     else if (to === me) { if (pack) s.packsReceivedFromUsers += q; else s.cardsReceived += q; partners.add(t.fromAddress); const k = norm(t.fromAddress), o = src.get(k) || { a: k, q: 0, t: ts }; o.q += q; if (ts > o.t) o.t = ts; src.set(k, o); }
     else if (from === me) { if (pack) s.packsSent += q; else s.cardsSent += q; partners.add(t.toAddress); }
   }
   s.partners = partners.size;
   s.sources = [...src.values()].sort((x, y) => y.q - x.q).slice(0, 10);
+  // Cartes créées par Rules regroupées dans le temps (≤ 2 min d'écart) : un groupe de 3 à 5 = une ouverture de pack probable.
+  mints.sort((x, y) => x[0] - y[0]); const groups = [];
+  for (const [t, q] of mints) { const g = groups[groups.length - 1]; if (g && t - g.e <= 120) { g.n += q; g.e = t; } else groups.push({ b: t, e: t, n: q }); }
+  const hist = {}; groups.forEach(g => hist[g.n] = (hist[g.n] || 0) + 1);
+  s.mintGroups = { total: groups.length, sizes: hist, packs: groups.filter(g => g.n >= 3 && g.n <= 5).length, big: groups.filter(g => g.n > 5).map(g => ({ t: g.b, n: g.n })) };
   const ev = await marketEvents();
   const sales = [], buys = [];
   for (const e of ev) {
@@ -164,6 +169,7 @@ export default {
         const r = await fetch("https://web.archive.org/cdx/search/cdx?url=" + encodeURIComponent(q) + "&output=json&collapse=urlkey&fl=original,mimetype,timestamp&filter=statuscode:200&limit=" + Math.min(Number(u.searchParams.get("limit")) || 200, 2000), { headers: { "user-agent": UA } });
         return new Response(await r.text(), { status: r.status, headers: { "content-type": "application/json", ...CORS } });
       }
+      if (u.pathname === "/api/dex") return new Response(await env.SITE.get("dex") || "[]", { headers: { "content-type": "application/json", "cache-control": "public, max-age=3600", ...CORS } });
       if (u.pathname === "/api/meta") {
         const ids = (u.searchParams.get("ids") || "").split(",").filter(x => /^\d{1,80}$/.test(x)).slice(0, 40);
         const out = {};
