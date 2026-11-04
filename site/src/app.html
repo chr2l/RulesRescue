@@ -1,41 +1,43 @@
-<div class="unoff" role="note">Archive <b>non officielle</b>, faite par un ancien joueur. Sans lien avec Rules Labs. Aucune connexion de wallet, aucune signature.</div>
-<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge">Non officiel</span><span class="sp"></span><a href="#explorer">Collection</a><a href="#dex">Dex</a><a href="#tuto">Tuto</a><a href="#outil">Outil</a></div></nav>
+<div class="unoff" role="note" data-en-html="An <b>unofficial</b> archive made by a former player. Not affiliated with Rules Labs. No wallet connection, no signature.">Archive <b>non officielle</b>, faite par un ancien joueur. Sans lien avec Rules Labs. Aucune connexion de wallet, aucune signature.</div>
+<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge" data-en="Unofficial">Non officiel</span><span class="sp"></span><a href="#explorer" data-en="Collection">Collection</a><a href="#dex">Dex</a><a href="#tuto" data-en="Guide">Tuto</a><a href="#outil" data-en="Tool">Outil</a><button type="button" class="lang" id="lang" aria-label="Langue / Language">EN</button></div></nav>
 
 <section class="view" data-view="explorer">
 <header class="wrap">
-  <div class="brand">Cartes Rules · Starknet · lecture seule</div>
-  <h1>Où sont<br>mes <span>cartes</span>&nbsp;?</h1>
+  <div class="brand" data-en="Rules cards · Starknet · read only">Cartes Rules · Starknet · lecture seule</div>
+  <h1 data-en-html="Where are<br>my <span>cards</span>?">Où sont<br>mes <span>cartes</span>&nbsp;?</h1>
   <form id="f" class="lookup" autocomplete="off">
-    <label for="addr" class="lab">Adresse Starknet (0x…)</label>
+    <label for="addr" class="lab" data-en="Starknet address (0x…)">Adresse Starknet (0x…)</label>
     <div class="row">
-      <input id="addr" name="addr" type="text" inputmode="text" spellcheck="false" placeholder="0x0… ton wallet Argent/Ready/Braavos ou ton ancien compte Rules" required>
-      <button type="submit" class="go">Voir les cartes</button>
+      <input id="addr" name="addr" type="text" inputmode="text" spellcheck="false" placeholder="0x0… ton wallet Argent/Ready/Braavos ou ton ancien compte Rules" data-en-ph="0x0… your Argent/Ready/Braavos wallet or your old Rules account" required>
+      <button type="submit" class="go" data-en="Show cards">Voir les cartes</button>
     </div>
-    <p class="hint">Rien à connecter, aucune signature : la page lit seulement la blockchain publique. <button type="button" class="linkish" id="demo">Essayer avec une collection d'exemple</button></p>
+    <p class="hint"><span data-en="Nothing to connect, no signature: the page only reads the public blockchain.">Rien à connecter, aucune signature : la page lit seulement la blockchain publique.</span> <button type="button" class="linkish" id="demo" data-en="Try a sample collection">Essayer avec une collection d'exemple</button></p>
   </form>
   <div class="profile" id="profile" hidden><div class="cover"></div><div class="who"><div class="ava" id="ava"></div><div><div class="pname" id="pname"></div><div class="wallet" id="pwallet"></div></div></div></div>
   <div class="counter" id="stats"></div>
   <p class="status" id="status" role="status"></p>
-  <details class="hist" id="hist" hidden><summary>Historique du compte</summary><div id="histBody"></div></details>
+  <details class="hist" id="hist" hidden><summary data-en="Account history">Historique du compte</summary><div id="histBody"></div></details>
 </header>
 
 <div class="bar" id="bar" hidden>
   <div class="wrap">
     <div class="seg" id="kind" role="group" aria-label="Type">
-      <button type="button" data-v="all" aria-pressed="true">Tout</button>
-      <button type="button" data-v="card" aria-pressed="false">Cartes</button>
+      <button type="button" data-v="all" aria-pressed="true" data-en="All">Tout</button>
+      <button type="button" data-v="card" aria-pressed="false" data-en="Cards">Cartes</button>
       <button type="button" data-v="pack" aria-pressed="false">Packs</button>
+      <button type="button" data-v="low" aria-pressed="false" title="N° de série bas (≤ 20 holo/platinium, ≤ 100 common/halloween)" data-en="Low serials">N° bas</button>
     </div>
     <div class="seg" id="rar" role="group" aria-label="Rareté">
-      <button type="button" data-v="all" aria-pressed="true">Toutes</button>
+      <button type="button" data-v="all" aria-pressed="true" data-en="All">Toutes</button>
       <button type="button" data-v="H" aria-pressed="false">Holo</button>
       <button type="button" data-v="P" aria-pressed="false">Platinium</button>
       <button type="button" data-v="W" aria-pressed="false">Halloween</button>
+      <button type="button" data-v="L" aria-pressed="false" hidden>Live</button>
       <button type="button" data-v="C" aria-pressed="false">Common</button>
     </div>
-    <select id="season" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
+    <select id="season" aria-label="Saison"><option value="all" data-en="Seasons 1 + 2">Saisons 1 + 2</option><option value="1" data-en="Season 1">Saison 1</option><option value="2" data-en="Season 2">Saison 2</option></select>
     <select id="artist" aria-label="Artiste"><option value="all">Tous les artistes</option></select>
-    <select id="sort" aria-label="Tri"><option value="rar">Tri : rareté</option><option value="artist">Tri : nom A → Z</option><option value="artistZ">Tri : nom Z → A</option><option value="serial">Tri : n° de série ↑</option><option value="serialD">Tri : n° de série ↓</option><option value="season">Tri : saison</option><option value="qty">Tri : exemplaires</option></select>
+    <select id="sort" aria-label="Tri"><option value="rar" data-en="Sort: rarity">Tri : rareté</option><option value="artist" data-en="Sort: name A → Z">Tri : nom A → Z</option><option value="artistZ" data-en="Sort: name Z → A">Tri : nom Z → A</option><option value="serial" data-en="Sort: serial ↑">Tri : n° de série ↑</option><option value="serialD" data-en="Sort: serial ↓">Tri : n° de série ↓</option><option value="season" data-en="Sort: season">Tri : saison</option><option value="qty" data-en="Sort: copies">Tri : exemplaires</option><option value="price" data-en="Sort: last sale price">Tri : dernier prix</option></select>
     <a class="dl" id="dl" href="#">cartes.json</a>
     <div class="count" id="count"></div>
   </div>
@@ -46,20 +48,21 @@
   <div class="empty" id="empty" hidden></div>
 </main>
 
-<footer class="wrap">Données lues sur Starknet via l'explorateur Voyager (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</footer>
+<footer class="wrap" data-en="Data read on Starknet through the Voyager explorer and a public RPC (cards contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Unofficial site, not affiliated with Rules Labs. HD images and animations: copies of their IPFS files (links stored in the contract); they belong to their artists.">Données lues sur Starknet via l'explorateur Voyager et un RPC public (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</footer>
 </section>
 
 <section class="view wrap" data-view="dex" hidden>
-  <header><div class="brand">Toutes les cartes Rules · Starknet</div><h2 class="doc-h">Dex</h2>
+  <header><div class="brand" data-en="Every Rules card · Starknet">Toutes les cartes Rules · Starknet</div><h2 class="doc-h">Dex</h2>
   <p class="sub" id="dexInfo">Chargement…</p></header>
   <div class="dexbar">
-    <div class="seg" id="dexOwn" role="group" aria-label="Possession"><button type="button" data-v="all" aria-pressed="true">Toutes</button><button type="button" data-v="own" aria-pressed="false">Possédées</button><button type="button" data-v="miss" aria-pressed="false">Manquantes</button></div>
-    <select id="dexRar" aria-label="Rareté"><option value="all">Toutes raretés</option><option value="C">Common</option><option value="H">Holographic</option><option value="P">Platinium</option><option value="W">Halloween</option></select>
-    <select id="dexSeason" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
-    <select id="dexSort" aria-label="Tri"><option value="artist">Tri : artiste</option><option value="rar">Tri : rareté</option><option value="season">Tri : saison</option><option value="owned">Tri : possédées d'abord</option><option value="supply">Tri : tirage (plus rares d'abord)</option></select>
+    <div class="seg" id="dexOwn" role="group" aria-label="Possession"><button type="button" data-v="all" aria-pressed="true" data-en="All">Toutes</button><button type="button" data-v="own" aria-pressed="false" data-en="Owned">Possédées</button><button type="button" data-v="miss" aria-pressed="false" data-en="Missing">Manquantes</button></div>
+    <select id="dexRar" aria-label="Rareté"><option value="all" data-en="All rarities">Toutes raretés</option><option value="C">Common</option><option value="H">Holographic</option><option value="P">Platinium</option><option value="W">Halloween</option><option value="L" hidden>Live</option></select>
+    <select id="dexSeason" aria-label="Saison"><option value="all" data-en="Seasons 1 + 2">Saisons 1 + 2</option><option value="1" data-en="Season 1">Saison 1</option><option value="2" data-en="Season 2">Saison 2</option></select>
+    <select id="dexSort" aria-label="Tri"><option value="artist" data-en="Sort: artist">Tri : artiste</option><option value="rar" data-en="Sort: rarity">Tri : rareté</option><option value="season" data-en="Sort: season">Tri : saison</option><option value="owned" data-en="Sort: owned first">Tri : possédées d'abord</option><option value="supply" data-en="Sort: supply (rarest first)">Tri : tirage (plus rares d'abord)</option><option value="price" data-en="Sort: last sale price">Tri : dernier prix</option><option value="sales" data-en="Sort: most traded">Tri : plus échangées</option></select>
   </div>
   <div class="badges" id="badges" hidden></div>
   <div class="grid" id="dexGrid"></div>
+  <p class="hint" id="dexMarket"></p>
 </section>
 
 __GUIDE__
@@ -70,14 +73,45 @@ __GUIDE__
 </dialog>
 
 <script>
+// Langue : ?lang=en, sinon choix mémorisé, sinon langue du navigateur.
+const LANG = (() => {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q === "en" || q === "fr") { try { localStorage.setItem("rr_lang", q); } catch (e) {} return q; }
+  try { const s = localStorage.getItem("rr_lang"); if (s === "en" || s === "fr") return s; } catch (e) {}
+  return /^fr\b/i.test(navigator.language || "fr") ? "fr" : "en";
+})();
+const EN = LANG === "en", t = (fr, en) => EN ? en : fr, LOC = t("fr-FR", "en-GB");
+document.documentElement.lang = LANG;
+if (EN) {
+  document.querySelectorAll("[data-en]").forEach(el => el.textContent = el.dataset.en);
+  document.querySelectorAll("[data-en-html]").forEach(el => el.innerHTML = el.dataset.enHtml);
+  document.querySelectorAll("[data-en-ph]").forEach(el => el.placeholder = el.dataset.enPh);
+}
+document.getElementById("lang").textContent = EN ? "FR" : "EN";
+document.getElementById("lang").onclick = () => { const u = new URL(location.href); u.searchParams.set("lang", EN ? "fr" : "en"); location.href = u.toString(); };
+
 const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f";
 const DEMO = "0x079be38babc015722dacfe6a741219540688bc988319879851e2062dc25319cf";
-const RN = { C: "Common", H: "Holographic", P: "Platinium", W: "Halloween", K: "Pack" };
-const RORD = { P: 0, H: 1, W: 2, C: 3, K: 4 };
+const RN = { C: "Common", H: "Holographic", P: "Platinium", W: "Halloween", L: "Live", K: "Pack" };
+const RORD = { L: 0, P: 1, H: 2, W: 3, C: 4, K: 5 };
+// Raretés officielles (ruleslabs/sdk-core, constants/index.ts) : tirage max, seuil « n° bas », coefficient du C-Score.
+const SCARCE = { C: { low: 100, coef: 1 }, P: { max: 350, low: 20, coef: 10 }, W: { max: 2175, low: 100, coef: 2.5 }, H: { max: 350, low: 20, coef: 10 }, L: { low: 0, coef: 15 } };
 const $ = id => document.getElementById(id);
-let items = [], view = [], cur = 0;
+let items = [], view = [], cur = 0, mkt = null;
 const state = { kind: "all", rar: "all", season: "all", artist: "all", sort: "rar" };
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const M128 = (1n << 128n) - 1n, modelOf = id => (BigInt(id) & M128).toString(16);
+const fmtEth = v => v >= 1 ? v.toFixed(2) : v >= 0.01 ? v.toFixed(3) : v.toPrecision(2);
+const short = a => a.slice(0, 6) + "…" + a.slice(-4);
+const fmtDate = s => s ? new Date(s * 1000).toLocaleDateString(LOC, { day: "numeric", month: "short", year: "numeric" }) : "?";
+
+// Ventes des deux marchés Rules (agrégées par le worker), chargées une fois.
+let mktP = null;
+function loadMarket() {
+  return mktP = mktP || fetch("/api/market").then(r => r.ok ? r.json() : null).then(j => { mkt = j; return j; }).catch(() => null);
+}
+const mModel = m => mkt && mkt.byModel[m] || null;
+const lastPrice = d => { const g = mModel(modelOf(d.id)); return g ? g.last : 0; };
 
 function normAddr(a) {
   a = a.trim().toLowerCase();
@@ -86,23 +120,23 @@ function normAddr(a) {
 }
 
 async function load(addr) {
-  $("status").textContent = "Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)";
+  $("status").textContent = t("Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)", "Reading the blockchain… (up to 30 s for a large collection)");
   $("grid").innerHTML = ""; $("stats").innerHTML = ""; $("bar").hidden = true; $("empty").hidden = true;
-  accHistory(addr); profile(addr); document.body.classList.add("loaded");
+  accHistory(addr); profile(addr); document.body.classList.add("loaded"); loadMarket();
   try {
     const r = await fetch("/api/cards?address=" + addr);
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || r.status);
     const held = j.items;
     $("dl").href = "/api/cards?address=" + addr + "&format=ids";
-    const deployed = j.deployed ? "déployé" : "jamais déployé (normal pour un compte de migration Rules)";
-    $("status").innerHTML = held.length
-      ? `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`
-      : "";
+    const deployed = j.deployed ? t("déployé", "deployed") : t("jamais déployé (normal pour un compte de migration Rules)", "never deployed (normal for a Rules migration account)");
+    const acc = `${t("Compte", "Account")} <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`;
+    $("status").innerHTML = held.length ? acc : "";
     if (!held.length) {
       items = [];
       $("empty").hidden = false;
-      $("empty").innerHTML = `<b>Aucune carte Rules sur cette adresse.</b> Si c'est ton ancien compte Rules, ouvre-le sur <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> et cherche un gros transfert de cartes fin 2023 : l'adresse de destination est celle de ton wallet de migration. Le <a href="#tuto">guide</a> explique la marche à suivre.`;
+      $("empty").innerHTML = t(`<b>Aucune carte Rules sur cette adresse.</b> Si c'est ton ancien compte Rules, ouvre-le sur <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> et cherche un gros transfert de cartes fin 2023 : l'adresse de destination est celle de ton wallet de migration. Le <a href="#tuto">guide</a> explique la marche à suivre.`,
+        `<b>No Rules cards on this address.</b> If this is your old Rules account, open it on <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">Voyager</a> and look for a large card transfer in late 2023: the destination is your migration wallet. The <a href="#tuto">guide</a> explains what to do.`);
       return;
     }
     const metaAll = {};
@@ -111,7 +145,7 @@ async function load(addr) {
       if (pass) await new Promise(r => setTimeout(r, 2000));
       for (let k = 0; k < todo.length; k += 40) {
         const done = Object.values(metaAll).filter(Boolean).length;
-        $("status").textContent = `Lecture des cartes… ${done} / ${held.length}`;
+        $("status").textContent = `${t("Lecture des cartes…", "Reading cards…")} ${done} / ${held.length}`;
         try { Object.assign(metaAll, await (await fetch("/api/meta?ids=" + todo.slice(k, k + 40).join(","))).json()); } catch (e) {}
       }
       todo = todo.filter(id => !metaAll[id]);
@@ -119,12 +153,13 @@ async function load(addr) {
     items = held.map((x, i) => {
       const m = metaAll[x.id];
       const serial = Number(BigInt(x.id) >> 128n);
-      return m ? { ...m, q: x.q, i } : { id: x.id, a: "Carte non identifiée", r: "C", n: serial, s: 0, q: x.q, i };
+      return m ? { ...m, q: x.q, i } : { id: x.id, a: t("Carte non identifiée", "Unidentified card"), r: "C", n: serial, s: 0, q: x.q, i };
     });
-    $("status").innerHTML = `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`;
-    stats(); fillArtists(); $("bar").hidden = false; render(); renderDex();
+    $("status").innerHTML = acc;
+    showLive(); stats(); fillArtists(); $("bar").hidden = false; render(); renderDex();
+    loadMarket().then(() => { stats(); if (state.sort === "price") render(); });
   } catch (e) {
-    $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
+    $("status").textContent = t("Lecture impossible pour l'instant (", "Could not read the blockchain right now (") + e.message + t("). Réessaie dans une minute.", "). Try again in a minute.");
   }
 }
 
@@ -140,38 +175,37 @@ function profile(addr) {
 async function accHistory(addr) {
   const box = $("hist"), body = $("histBody");
   box.hidden = false; box.open = false;
-  body.innerHTML = `<p class="sub">Lecture des transferts et des ventes… (jusqu'à 1 min)</p>`;
+  body.innerHTML = `<p class="sub">${t("Lecture des transferts et des ventes… (jusqu'à 1 min)", "Reading transfers and sales… (up to 1 min)")}</p>`;
   try {
     const r = await fetch("/api/history?address=" + addr);
     const h = await r.json();
     if (!r.ok) throw new Error(h.error || r.status);
-    if (!h.transfers) { body.innerHTML = '<p class="sub">Aucun mouvement de cartes Rules sur cette adresse.</p>'; return; }
-    const d = t => t ? new Date(t * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "?";
+    if (!h.transfers) { body.innerHTML = `<p class="sub">${t("Aucun mouvement de cartes Rules sur cette adresse.", "No Rules card movements on this address.")}</p>`; return; }
     const rows = [
-      [h.cardsFromPacks, "cartes reçues de Rules", "créées directement sur le compte (ouvertures de packs, migration)"],
-      [h.cardsReceived, "cartes reçues", "envoyées par d'autres comptes (échanges, achats, migration)"],
-      [h.cardsSent, "cartes envoyées", "échanges, ventes ou migration vers un autre compte"],
-      [h.packsReceived + h.packsReceivedFromUsers, "packs reçus", ""],
-      [h.packsOpened, "packs brûlés sur la blockchain", "packs détenus sur le compte puis ouverts"],
-      [h.partners, "comptes différents", "avec qui des cartes ont circulé"],
-      [h.sold, "ventes sur le marché Rules", h.sold ? h.soldEth + " ETH au total" : ""],
-      [h.bought, "achats sur le marché Rules", h.bought ? h.boughtEth + " ETH au total" : ""],
+      [h.cardsFromPacks, t("cartes reçues de Rules", "cards received from Rules"), t("créées directement sur le compte (ouvertures de packs, migration)", "minted straight to the account (pack openings, migration)")],
+      [h.cardsReceived, t("cartes reçues", "cards received"), t("envoyées par d'autres comptes (échanges, achats, migration)", "sent by other accounts (trades, purchases, migration)")],
+      [h.cardsSent, t("cartes envoyées", "cards sent"), t("échanges, ventes ou migration vers un autre compte", "trades, sales or migration to another account")],
+      [h.packsReceived + h.packsReceivedFromUsers, t("packs reçus", "packs received"), ""],
+      [h.packsOpened, t("packs brûlés sur la blockchain", "packs burned on-chain"), t("packs détenus sur le compte puis ouverts", "packs held on the account, then opened")],
+      [h.partners, t("comptes différents", "different accounts"), t("avec qui des cartes ont circulé", "cards moved to or from")],
+      [h.sold, t("ventes sur le marché Rules", "sales on the Rules market"), h.sold ? h.soldEth + t(" ETH au total", " ETH in total") : ""],
+      [h.bought, t("achats sur le marché Rules", "purchases on the Rules market"), h.bought ? h.boughtEth + t(" ETH au total", " ETH in total") : ""],
     ];
-    body.innerHTML = `<p class="sub">Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.transfers} transferts de cartes ou de packs.</p>`
-      + '<div class="counter">' + rows.map(([n, l, t]) => `<div class="stat" title="${esc(t)}"><b>${n}</b><small>${l}</small>${t ? `<span class="why">${esc(t)}</span>` : ""}</div>`).join("") + "</div>"
-      + `<p class="sub">Les ventes comptent les ordres exécutés sur le contrat de marché Rules (${h.marketTotal} ventes au total sur toute la plateforme).</p>`
+    const oldNote = h.marketOldOk === false ? t(" L'ancien marché (avant fin 2023) n'a pas pu être lu cette fois.", " The old market (before late 2023) could not be read this time.") : h.marketOld ? t(`, dont ${h.marketOld} sur l'ancien marché d'avant fin 2023`, `, ${h.marketOld} of them on the pre-late-2023 market`) : "";
+    body.innerHTML = `<p class="sub">${t("Actif du", "Active from")} ${fmtDate(h.firstActivity)} ${t("au", "to")} ${fmtDate(h.lastActivity)} · ${h.transfers} ${t("transferts de cartes ou de packs.", "card or pack transfers.")}</p>`
+      + '<div class="counter">' + rows.map(([n, l, tt]) => `<div class="stat" title="${esc(tt)}"><b>${n}</b><small>${l}</small>${tt ? `<span class="why">${esc(tt)}</span>` : ""}</div>`).join("") + "</div>"
+      + `<p class="sub">${t("Les ventes comptent les ordres exécutés sur les contrats de marché Rules", "Sales count the orders filled on the Rules market contracts")} (${h.marketTotal} ${t("ventes au total sur toute la plateforme", "sales across the whole platform")}${oldNote}).</p>`
       + '<div id="chain"></div>';
     chain(addr, h);
   } catch (e) {
-    body.innerHTML = `<p class="sub">Historique indisponible pour l'instant (${esc(e.message)}).</p>`;
+    body.innerHTML = `<p class="sub">${t("Historique indisponible pour l'instant", "History unavailable right now")} (${esc(e.message)}).</p>`;
   }
 }
 
 // Remonte les comptes qui ont envoyé des cartes en masse (migrations) vers cette adresse, puis leurs propres sources.
 async function chain(addr, h0) {
   const el = $("chain"), seen = new Set([addr]), links = [], hist = { [addr]: h0 };
-  const short = a => a.slice(0, 6) + "…" + a.slice(-4);
-  el.innerHTML = '<p class="sub">Recherche des comptes d\'origine…</p>';
+  el.innerHTML = `<p class="sub">${t("Recherche des comptes d'origine…", "Looking for source accounts…")}</p>`;
   let frontier = [addr];
   for (let depth = 0; depth < 3 && frontier.length; depth++) {
     const next = [];
@@ -182,89 +216,113 @@ async function chain(addr, h0) {
     frontier = next;
   }
   if (!links.length) { el.innerHTML = ""; return; }
-  const d = t => t ? new Date(t * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "?";
   const all = [addr, ...links.map(l => l.from)].filter(a => hist[a]);
   const sum = k => all.reduce((x, a) => x + (Number(hist[a][k]) || 0), 0);
   const eth = k => all.reduce((x, a) => x + (parseFloat(hist[a][k]) || 0), 0).toFixed(4);
   const first = Math.min(...all.map(a => hist[a].firstActivity || Infinity));
-  const opens = all.reduce((x, a) => x + ((hist[a].mintGroups || {}).packs || 0), 0), recv = sum("cardsReceived") - links.reduce((x, l) => x + l.q, 0);
-  el.innerHTML = '<h3 class="sub">Comptes d\'origine</h3><ol class="plain">'
-    + links.map(l => { const h = hist[l.from] || {}; return `<li><a href="?address=${l.from}">${short(l.from)}</a> → ${short(l.to)} : <b>${l.q}</b> objets envoyés (dernier envoi le ${d(l.t)}).`
-      + (h.transfers ? ` Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.cardsFromPacks} cartes reçues de Rules · ${h.sold} ventes · ${h.bought} achats.` : "") + "</li>"; }).join("")
+  const recv = sum("cardsReceived") - links.reduce((x, l) => x + l.q, 0);
+  const mintTotal = all.reduce((x, a) => x + ((hist[a].mintGroups || {}).total || 0), 0);
+  el.innerHTML = `<h3 class="sub">${t("Comptes d'origine", "Source accounts")}</h3><ol class="plain">`
+    + links.map(l => { const h = hist[l.from] || {}; return `<li><a href="?address=${l.from}">${short(l.from)}</a> → ${short(l.to)} : <b>${l.q}</b> ${t("objets envoyés (dernier envoi le", "items sent (last sent on")} ${fmtDate(l.t)}).`
+      + (h.transfers ? ` ${t("Actif du", "Active from")} ${fmtDate(h.firstActivity)} ${t("au", "to")} ${fmtDate(h.lastActivity)} · ${h.cardsFromPacks} ${t("cartes reçues de Rules", "cards from Rules")} · ${h.sold} ${t("ventes", "sales")} · ${h.bought} ${t("achats", "purchases")}.` : "") + "</li>"; }).join("")
     + "</ol>"
-    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, ${all.reduce((x, a) => x + ((hist[a].mintGroups || {}).total || 0), 0)} créations de cartes par Rules (une transaction chacune : les ouvertures de packs se faisaient dans la base de Rules, hors blockchain), ${Math.max(0, recv)} cartes reçues d'autres joueurs (hors migrations), ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
+    + t(`<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${fmtDate(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, ${mintTotal} créations de cartes par Rules (une transaction chacune : les ouvertures de packs se faisaient dans la base de Rules, hors blockchain), ${Math.max(0, recv)} cartes reçues d'autres joueurs (hors migrations), ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`,
+        `<p class="sub">Across the whole chain (${all.length} accounts) since ${fmtDate(first)}: ${sum("cardsFromPacks")} cards received from Rules, ${sum("packsReceived")} packs received from Rules, ${mintTotal} card mints by Rules (one transaction each: pack openings happened in Rules' database, off-chain), ${Math.max(0, recv)} cards received from other players (excluding migrations), ${sum("sold")} sales (${eth("soldEth")} ETH) and ${sum("bought")} purchases (${eth("boughtEth")} ETH) on the market.</p>`);
 }
 
-// Badges : paliers par artiste + rareté, et n° de série bas.
+// Badges : paliers par carte (artiste + saison + rareté), et n° de série bas.
 const star = (bg, fg) => `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g50" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a8"/><stop offset="1" stop-color="#ffc1e3"/></linearGradient></defs><circle cx="20" cy="20" r="19" fill="${bg}"/><path d="M20 7.5l3.7 7.6 8.4 1.2-6.1 5.9 1.4 8.3L20 26.6l-7.5 3.9 1.4-8.3-6.1-5.9 8.4-1.2z" fill="${fg}"/></svg>`;
 const TIERS = [[50, star("url(#g50)", "#111"), "50"], [20, star("#9f04dc", "#fff"), "20"], [10, star("#e53935", "#fff"), "10"], [5, star("#f5c518", "#fff"), "5"]];
 const BADGE = { hash: `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="gh" cx=".45" cy=".4" r=".65"><stop offset="0" stop-color="#3bd16f"/><stop offset="1" stop-color="#159a3e"/></radialGradient></defs><circle cx="20" cy="20" r="19" fill="url(#gh)"/><path d="M16 9l-1.6 22M25.6 9L24 31M10 16h21M9 24.5h21" stroke="#fff" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg>` };
-const lowSerial = d => (d.r === "H" || d.r === "P") ? d.n > 0 && d.n < 25 : (d.r === "C" || d.r === "W") ? d.n > 0 && d.n < 250 : false;
-// Un badge par modèle (artiste + saison + rareté), affiché seulement dans le Dex.
+// Seuils officiels de Rules (maxLowSerial) : ≤ 20 en holo et platinium, ≤ 100 en common et halloween, aucun en live.
+const lowSerial = d => { const c = SCARCE[d.r]; return !!c && c.low > 0 && d.n > 0 && d.n <= c.low; };
+const LOW_HINT = t("# : n° de série bas selon les seuils de Rules (≤ 20 en holo et platinium, ≤ 100 en common et halloween).", "#: low serial by Rules' own thresholds (≤ 20 for holo and platinium, ≤ 100 for common and halloween).");
 const tierOf = q => TIERS.find(([n]) => q >= n);
 function badges(L, low) {
-  const earned = [];
+  const earned = [], cards = t("cartes", "cards"), tier = t("palier", "tier");
   for (const x of L) {
     if (x.r === "K" || !x.q) continue;
-    const lab = `${RN[x.r]} · S${x.s || "?"}`, t = tierOf(x.q), n = low[x.m] || [];
-    if (t) earned.push(`<div class="bdg" title="${esc(x.a)} · ${lab} : ${x.q} cartes">${t[1]}<span><b>${esc(x.a)}</b><small>${lab} · ${x.q} cartes (palier ${t[2]})</small></span></div>`);
-    if (n.length) earned.push(`<div class="bdg" title="N° de série bas">${BADGE.hash}<span><b>${esc(x.a)}</b><small>${lab} · n° ${n.sort((a, b) => a - b).slice(0, 4).join(", ")}</small></span></div>`);
+    const lab = `${RN[x.r]} · S${x.s || "?"}`, tr = tierOf(x.q), n = low[x.m] || [];
+    if (tr) earned.push(`<div class="bdg" title="${esc(x.a)} · ${lab} : ${x.q} ${cards}">${tr[1]}<span><b>${esc(x.a)}</b><small>${lab} · ${x.q} ${cards} (${tier} ${tr[2]})</small></span></div>`);
+    if (n.length) earned.push(`<div class="bdg" title="${t("N° de série bas", "Low serial")}">${BADGE.hash}<span><b>${esc(x.a)}</b><small>${lab} · n° ${n.sort((a, b) => a - b).slice(0, 4).join(", ")}</small></span></div>`);
   }
   $("badges").hidden = !earned.length;
-  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">Un badge par carte (même artiste, même saison, même rareté). Étoile : 5, 10, 20 ou 50 exemplaires. # : n° de série sous 25 (holo, platinium) ou sous 250 (common, halloween).</p>` : "";
+  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">${t("Un badge par carte (même artiste, même saison, même rareté). Étoile : 5, 10, 20 ou 50 exemplaires.", "One badge per card (same artist, season and rarity). Star: 5, 10, 20 or 50 copies.")} ${LOW_HINT}</p>` : "";
+}
+
+// La rareté Live (saison 2) n'apparaît que si des cartes Live existent.
+function showLive() {
+  const has = items.some(d => d.r === "L") || (dex || []).some(x => hd[x.id] && hd[x.id].r === "L");
+  document.querySelectorAll('[data-v="L"], #dexRar option[value="L"]').forEach(el => el.hidden = !has);
 }
 
 // Dex : tous les modèles de cartes (liste construite depuis les événements de création du contrat).
 let dex = null; const dexState = { own: "all", rar: "all", season: "all", sort: "artist" };
 async function loadDex() {
   if (!dex) {
-    try { dex = await (await fetch("/api/dex")).json(); } catch (e) { $("dexInfo").textContent = "Dex indisponible pour l'instant."; return; }
+    try { dex = await (await fetch("/api/dex")).json(); } catch (e) { $("dexInfo").textContent = t("Dex indisponible pour l'instant.", "Dex unavailable right now."); return; }
   }
+  loadMarket().then(renderDex);
   renderDex();
   const todo = dex.filter(x => !hd[x.id]);
   for (let k = 0; k < todo.length; k += 8) {
     await Promise.all(todo.slice(k, k + 8).map(x => hdMeta(x.id).catch(() => {})));
     if (k % 40 === 0) renderDex();
   }
-  try { localStorage.setItem("rr_hd3", JSON.stringify(hd)); } catch (x) {}
-  renderDex();
+  try { localStorage.setItem("rr_hd4", JSON.stringify(hd)); } catch (x) {}
+  showLive(); renderDex();
 }
+function supplyTxt(x) { const c = SCARCE[x.r]; return c && c.max ? `${x.n} / ${c.max}` : `${x.n}`; }
 function renderDex() {
   if (!dex) return;
-  const M = (1n << 128n) - 1n, owned = {}, low = {};
-  items.forEach(d => { const lo = (BigInt(d.id) & M).toString(16); owned[lo] = (owned[lo] || 0) + d.q; if (lowSerial(d)) (low[lo] = low[lo] || []).push(d.n); });
-  const L = dex.map(x => { const h = hd[x.id] || {}; return { ...x, a: h.a || "…", r: h.r || "C", s: h.s || 0, q: owned[x.m] || 0 }; })
+  const owned = {}, low = {};
+  items.forEach(d => { const lo = modelOf(d.id); owned[lo] = (owned[lo] || 0) + d.q; if (lowSerial(d)) (low[lo] = low[lo] || []).push(d.n); });
+  const L = dex.map(x => { const h = hd[x.id] || {}; const g = mModel(x.m) || {}; return { ...x, a: h.a || "…", r: h.r || "C", s: h.s || 0, q: owned[x.m] || 0, p: g.last || 0, ns: g.n || 0 }; })
     .filter(x => x.r !== "K" || dexState.rar === "all")
     .filter(x => (dexState.own === "all" || (dexState.own === "own") === (x.q > 0)) && (dexState.rar === "all" || x.r === dexState.rar) && (dexState.season === "all" || String(x.s) === dexState.season));
-  const by = { artist: (x, y) => x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r] || x.s - y.s, rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"), season: (x, y) => x.s - y.s || x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r], owned: (x, y) => (y.q > 0) - (x.q > 0) || x.a.localeCompare(y.a, "fr"), supply: (x, y) => x.n - y.n || x.a.localeCompare(y.a, "fr") }[dexState.sort];
+  const loc = LOC.slice(0, 2);
+  const by = { artist: (x, y) => x.a.localeCompare(y.a, loc) || RORD[x.r] - RORD[y.r] || x.s - y.s, rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, loc), season: (x, y) => x.s - y.s || x.a.localeCompare(y.a, loc) || RORD[x.r] - RORD[y.r], owned: (x, y) => (y.q > 0) - (x.q > 0) || x.a.localeCompare(y.a, loc), supply: (x, y) => x.n - y.n || x.a.localeCompare(y.a, loc), price: (x, y) => y.p - x.p || x.a.localeCompare(y.a, loc), sales: (x, y) => y.ns - x.ns || x.a.localeCompare(y.a, loc) }[dexState.sort];
   L.sort(by);
   badges(L, low);
   const nOwn = dex.filter(x => owned[x.m]).length;
-  $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} modèles possédés dans la collection chargée.` : `${dex.length} modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.`;
-  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.q ? `<span class="qty">×${x.q}</span>` : ""}${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="Palier ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="N° de série bas">${BADGE.hash}</span>` : ""}</div><div class="meta"><strong>${esc(x.a)}</strong><span><em class="pill r-${x.r}">${RN[x.r]}</em> S${x.s || "?"} · ${x.n} créées</span></div></div>`).join("");
+  $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} ${t("modèles possédés dans la collection chargée.", "models owned in the loaded collection.")}` : `${dex.length} ${t("modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.", "card and pack models. Load a collection (Collection tab) to see what you own.")}`;
+  const created = t("créées", "minted"), lastS = t("dernière vente", "last sale");
+  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.q ? `<span class="qty">×${x.q}</span>` : ""}${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="${t("Palier", "Tier")} ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="${t("N° de série bas", "Low serial")}">${BADGE.hash}</span>` : ""}</div><div class="meta"><strong>${esc(x.a)}</strong><span><em class="pill r-${x.r}">${RN[x.r]}</em> S${x.s || "?"} · ${supplyTxt(x)} ${created}</span>${x.p ? `<span class="price" title="${x.ns} ${t("ventes", "sales")} · ${t("moyenne", "average")} ${fmtEth(mModel(x.m).avg)} ETH">${lastS} ${fmtEth(x.p)} ETH · ${x.ns}×</span>` : ""}</div></div>`).join("");
+  $("dexMarket").textContent = mkt ? t(`Prix : ${mkt.sales} ventes lues sur les marchés Rules${mkt.old ? `, dont ${mkt.old} sur l'ancien marché d'avant fin 2023` : ""}. « Dernière vente » = prix de la dernière vente d'un exemplaire de ce modèle, en ETH, à l'époque.`, `Prices: ${mkt.sales} sales read from the Rules markets${mkt.old ? `, ${mkt.old} of them on the pre-late-2023 market` : ""}. "Last sale" = price of the last sale of any copy of this model, in ETH, at the time.`) : "";
 }
 $("dexOwn").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; dexState.own = b.dataset.v; document.querySelectorAll("#dexOwn button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderDex(); });
-for (const [id, k] of [["dexRar", "rar"], ["dexSeason", "season"], ["dexSort", "sort"]]) $(id).addEventListener("change", e => { dexState[k] = e.target.value; renderDex(); });
+for (const [id, k] of [["dexRar", "rar"], ["dexSeason", "season"], ["dexSort", "sort"]]) $(id).addEventListener("change", e => { dexState[k] = e.target.value; if (k === "sort" && (e.target.value === "price" || e.target.value === "sales")) loadMarket().then(renderDex); renderDex(); });
 
+// C-Score estimé : chaque modèle différent compte selon le coefficient de sa rareté (sdk-core), × 1000.
+// La formule exacte de Rules était calculée sur leur serveur et n'est pas publique.
+function cScore() {
+  const seen = new Set(); let s = 0;
+  for (const d of items) { if (d.r === "K") continue; const m = modelOf(d.id); if (seen.has(m)) continue; seen.add(m); s += (SCARCE[d.r] || SCARCE.C).coef; }
+  return Math.round(s * 1000);
+}
 function stats() {
   const cards = items.filter(d => d.r !== "K");
+  const val = mkt ? cards.reduce((s, d) => s + lastPrice(d) * d.q, 0) : 0;
   const st = [
-    [cards.reduce((s, d) => s + d.q, 0), "cartes"],
+    [cards.reduce((s, d) => s + d.q, 0), t("cartes", "cards")],
     [items.filter(d => d.r === "K").reduce((s, d) => s + d.q, 0), "packs"],
-    [new Set(cards.map(d => d.a)).size, "artistes"],
+    [new Set(cards.map(d => d.a)).size, t("artistes", "artists")],
     [cards.filter(d => d.r === "H").length, "holo"],
     [cards.filter(d => d.r === "P").length, "platinium"],
+    [cards.filter(lowSerial).length, t("n° bas", "low serials"), LOW_HINT],
+    [cScore().toLocaleString(LOC), t("C-Score estimé", "est. C-Score"), t("Estimation : chaque carte différente compte 1 (common), 2,5 (halloween), 10 (holo, platinium) ou 15 (live), × 1000. Coefficients tirés du code de Rules ; leur formule exacte n'est pas publique.", "Estimate: each distinct card counts 1 (common), 2.5 (halloween), 10 (holo, platinium) or 15 (live), × 1000. Coefficients from Rules' code; their exact formula is not public.")],
   ];
-  $("stats").innerHTML = st.map(([n, l]) => `<div class="stat"><b>${n}</b><small>${l}</small></div>`).join("");
+  if (val > 0) st.push([fmtEth(val), t("ETH au dernier prix", "ETH at last price"), t("Somme des derniers prix de vente connus de chaque modèle sur le marché Rules. Indicatif : ce marché est fermé.", "Sum of the last known sale price of each model on the Rules market. Indicative only: that market is closed.")]);
+  $("stats").innerHTML = st.map(([n, l, tt]) => `<div class="stat"${tt ? ` title="${esc(tt)}"` : ""}><b>${n}</b><small>${l}</small></div>`).join("");
 }
 function fillArtists() {
   const counts = {}; items.filter(d => d.r !== "K").forEach(d => counts[d.a] = (counts[d.a] || 0) + d.q);
-  $("artist").innerHTML = `<option value="all">Tous les artistes</option>` + Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr")).map(a => `<option value="${esc(a)}">${esc(a)} (${counts[a]})</option>`).join("");
+  $("artist").innerHTML = `<option value="all">${t("Tous les artistes", "All artists")}</option>` + Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr")).map(a => `<option value="${esc(a)}">${esc(a)} (${counts[a]})</option>`).join("");
   state.artist = "all";
 }
 function filtered() {
   const out = items.filter(d =>
-    (state.kind === "all" || (state.kind === "pack") === (d.r === "K")) &&
+    (state.kind === "all" || (state.kind === "low" ? lowSerial(d) : (state.kind === "pack") === (d.r === "K"))) &&
     (state.rar === "all" || d.r === state.rar) &&
     (state.season === "all" || String(d.s) === state.season) &&
     (state.artist === "all" || d.a === state.artist));
@@ -276,17 +334,17 @@ function filtered() {
     serialD: (x, y) => (x.r === "K") - (y.r === "K") || y.n - x.n,
     season: (x, y) => (x.r === "K") - (y.r === "K") || x.s - y.s || RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"),
     qty: (x, y) => y.q - x.q || RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"),
+    price: (x, y) => lastPrice(y) - lastPrice(x) || RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"),
   }[state.sort];
   return out.sort(by);
 }
 const RPC = "https://api.zan.top/public/starknet-mainnet", GW = "https://gateway.pinata.cloud/ipfs/";
 const URI_SEL = "0x2ee3279dd30231650e0b4a1a3516ab3dc26b6d3dfcb6ef20fb4329cfc1213e1";
 const hd = {};
-try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd3") || "{}")); } catch (e) {}
-const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W" };
-// Copies HD hébergées sur R2 (media.elie.place) : clé = nom de la carte ; DUP départage les homonymes par CID d'image.
+try { Object.assign(hd, JSON.parse(localStorage.getItem("rr_hd4") || "{}")); } catch (e) {}
+const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W", live: "L" };
 const MEDIA = "https://media.elie.place/", MAN = {"404Billy-Common":"jv","404Billy-holographic":"jv","8ruki-Common":"jv","8ruki-platinium":"jv","Alien-Base-Pack":"p","Azur-Common":"jv","Baby-Neelou-Common":"jv","BabySolo33-Common":"jv","BabySolo33-holographic":"jv","Barz-Base-Pack":"p","Benjamin-Epps-Common-2":"jv","Benjamin-Epps-Common":"jv","Benjamin-Epps-platinium":"jv","Bigflo-Common":"jv","Bigflo-platinium":"jv","Blood-Base-Pack":"p","Caba-J-J-platinium":"jv","Caballero-Common-2":"jv","Caballero-Common":"jv","Caballero-holographic":"jv","Deen-Burbigo-Common-2":"jv","Deen-Burbigo-Common":"jv","Deen-Burbigo-holographic":"jv","Deen-Burbigo-platinium":"jv","Di-Meh-Common":"jv","Doums-Common":"jv","Doums-platinium":"jv","Flem-Common":"jv","HOUDI-Common":"jv","Halloween-Pack":"p","Homerun-Pack":"p","JMK-Common":"jv","JeanJass-Common-2":"jv","JeanJass-Common":"jv","Jewel-Usain-Common":"jv","Jewel-Usain-platinium":"jv","Jwles-Common":"jv","Karmen-Common":"jv","Kerchak-Common-2":"jv","Kerchak-Common":"jv","Launch-Pack-S2":"p","Le-Reglement-Common-2":"jv","Le-Reglement-Common":"jv","Le-Reglement-halloween":"jv","Le-Reglement-holographic":"jv","Le-Reglement-platinium":"jv","Livai-Common":"jv","Lycos-Common":"jv","Magic-Base-Pack":"p","Mahdi-Ba-Common":"jv","Mairo-Common":"jv","Mairo-holographic":"jv","Mehdi-Maizi-Common":"jv","Mirror-Pack":"p","Moji-x-Sboy-Common":"jv","Nunca-Common":"jv","Rad-Cartier-Common":"jv","Rain-Pack":"p","Rainbow-Base-Pack":"p","Roshi-Common":"jv","Rowjay-Common":"jv","San-Pack":"p","Santa-Pack":"p","Selug-enar-Common":"jv","Sheldon-Common-2":"jv","Sheldon-Common":"jv","Skuna-Common":"jv","Slice-Pack":"p","Slimka-Common":"jv","So-La-Lune-Common-2":"jv","So-La-Lune-Common":"jv","Spider-Zed-Common-2":"jv","Spider-Zed-Common":"jv","Spider-Zed-holographic":"jv","Spider-Zed-platinium":"jv","Stony-Stone-Common":"jv","Vladimir-Cauchemar-Common":"jv","Wallace-Cleaver-Common":"jv","Wave-Base-Pack":"p","Winnterzuko-Common-2":"jv","Winnterzuko-Common":"jv","Youv-Dee-Common-2":"jv","Youv-Dee-Common":"jv","Ysos-Common":"jv","Zinee-Common":"jv","Zinee-halloween":"jv","Zinee-platinium":"jv","Zuukou-Mayzie-Common-2":"jv","Zuukou-Mayzie-Common":"jv","Zuukou-Mayzie-halloween":"jv","thaHomey-Common-2":"jv","thaHomey-Common":"jv","Limsa-d-Aulnay-Common":"v"}, DUP = {"Qmd5YEWtV91koQ4mKbdNTGwx8gjRSYSKijYtgogv9ZKmpJ":"Spider-Zed-Common-2","QmS42R7BAVKo3CfurjCnDuPK9e8XSWGsYEP6Z1o6uHkGt6":"Le-Reglement-Common-2","QmVuiq1jG7Xi7NCKJ1P2gfeRJWppnkxjjREWSByHsPPrmC":"Zuukou-Mayzie-Common-2","QmY1JXFmDTtAa6GMF6k3EAShcEUVZiCxPebzKvmcK4hxmK":"Winnterzuko-Common-2","QmSwudLam7WeZusuiFLiSomXQRQwNykbcDhq7Co7GKawtT":"Deen-Burbigo-Common-2","QmXCVRft9AL7eyr3Pu4gHzXCQJNcoixKpXG2pc6msXUfBc":"Youv-Dee-Common-2","QmaVgGP2vYeDQonha3cFe3AcuRskTovNyFsb74add7YysD":"Caballero-Common-2","QmZ7V8w1GY6Bc6bDMAq3fYn1TDEB895EKoSYSgAobhX9MU":"thaHomey-Common-2","QmcALYcVSqi5ougu3WPM3S7rQAAPLVXj9nPFJT6TK6gz6z":"Kerchak-Common-2","QmXsbra2wwbaUQ5X6i5wLwct3Mzw2KLuXYihyD3PRfeMrS":"Benjamin-Epps-Common-2","QmNpvF1JhYmdT3d8W842YPAxhmgMDRr55ReK42jUhT2F9f":"So-La-Lune-Common-2","Qmdk7pdWdQ4ZJJ9bawy1uDMEt4LMaHZbKCxuQbF4rpvHCL":"Sheldon-Common-2","QmSPXUyJrq48KiGJhUoWvDPUK8vUec5RG4ntUUkaoEgUsX":"JeanJass-Common-2"};
-const slug = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const ipfs = u => u && u.startsWith("ipfs://") ? GW + u.slice(7) : u;
 async function hdMeta(id) {
   if (hd[id]) return hd[id];
@@ -297,37 +355,38 @@ async function hdMeta(id) {
   const cid = (m.image || "").slice(7), key = DUP[cid] || slug((m.name || "").replace(/ #\d+$/, "")), f = MAN[key] || "";
   const at = {}; (m.attributes || []).forEach(x => at[(x.trait_type || "").toLowerCase()] = x.value);
   return hd[id] = {
-    a: at.artist || (m.name || "").replace(/ #\d+$/, ""), r: RAR[(at.rarity || "").toLowerCase()] || (at.artist ? "C" : "K"), s: Number(at.season || 1),
+    a: at.artist || (m.name || "").replace(/ #\d+$/, ""), r: RAR[(at.rarity || at.scarcity || "").toLowerCase()] || (at.artist ? "C" : "K"), s: Number(at.season || 1),
     img: /[jp]/.test(f) ? MEDIA + "images/" + key + (f.includes("p") ? ".png" : ".jpg") : ipfs(m.image),
     anim: f.includes("v") ? MEDIA + "videos/" + key + ".mp4" : ipfs(m.animation_url) || null,
   };
 }
 function upgrade(id) {
   const h = hd[id]; if (!h) return;
-  document.querySelectorAll(`.card[data-id="${id}"] img`).forEach(im => { if (im.dataset.hd) return; im.dataset.hd = 1; const t = new Image(); t.onload = () => { im.src = h.img; }; t.src = h.img; });
+  document.querySelectorAll(`.card[data-id="${id}"] img`).forEach(im => { if (im.dataset.hd) return; im.dataset.hd = 1; const tm = new Image(); tm.onload = () => { im.src = h.img; }; tm.src = h.img; });
 }
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return; io.unobserve(e.target);
-  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd3", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
+  const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd4", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
 }), { rootMargin: "400px" });
 const srcOf = d => hd[d.id] ? hd[d.id].img : "/img/" + d.id;
 function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
+const serialTxt = d => { const c = SCARCE[d.r]; return "#" + d.n + (c && c.max ? " / " + c.max : ""); };
 function render() {
   view = filtered();
   $("grid").innerHTML = view.map((d, k) => `
     <button class="card" type="button" data-k="${k}" data-id="${d.id}">
       <div class="frame ${frameCls(d)}">
         <img src="${srcOf(d)}" ${hd[d.id] ? 'data-hd="1"' : ""} onerror="if(this.dataset.hd){this.removeAttribute('data-hd');this.src='/img/${d.id}'}" alt="${esc(d.r === "K" ? d.a : d.a + " " + RN[d.r] + " n°" + d.n)}" loading="lazy" decoding="async">
-        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}
+        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}${lowSerial(d) ? `<span class="lowser" title="${t("N° de série bas", "Low serial")}">${BADGE.hash}</span>` : ""}
       </div>
-      <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : "#" + d.n + " ·"} S${d.s}</span></div>
+      <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : serialTxt(d) + " ·"} S${d.s}</span></div>
     </button>`).join("");
   $("count").textContent = `${view.length} / ${items.length}`;
   document.querySelectorAll("#grid .card").forEach(c => io.observe(c));
   for (const id of ["kind", "rar"]) document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === state[id])));
 }
 for (const id of ["kind", "rar"]) $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state[id] = b.dataset.v; render(); });
-for (const id of ["season", "artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; render(); });
+for (const id of ["season", "artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; if (e.target.value === "price") loadMarket().then(render); render(); });
 $("grid").addEventListener("pointerover", e => {
   const c = e.target.closest(".card"); if (!c || e.pointerType === "touch") return;
   const h = hd[c.dataset.id]; const f = c.querySelector(".frame"); if (!h || !h.anim || f.querySelector("video")) return;
@@ -340,22 +399,48 @@ $("grid").addEventListener("pointermove", e => {
   const f = e.target.closest(".frame"); if (!f) return; const r = f.getBoundingClientRect();
   f.style.setProperty("--px", ((e.clientX - r.left) / r.width * 100) + "%"); f.style.setProperty("--py", ((e.clientY - r.top) / r.height * 100) + "%");
 });
+
+// Historique d'un exemplaire : transferts lus sur Voyager + ventes sur les deux marchés Rules.
+async function provenance(d) {
+  const el = $("prov"); if (!el) return;
+  try {
+    const j = await (await fetch("/api/token?id=" + d.id)).json();
+    if ($("prov") !== el) return;
+    const rows = [];
+    for (const tr of j.transfers || []) {
+      const what = BigInt(tr.from) === 0n ? t("Créée sur", "Minted to") : BigInt(tr.to) === 0n ? t("Brûlée par", "Burned by") : `${short(tr.from)} →`;
+      const who = BigInt(tr.to) === 0n ? short(tr.from) : short(tr.to);
+      rows.push(`<li>${fmtDate(tr.t)} · ${what} <a href="?address=${tr.to}">${who}</a>${tr.q > 1 ? ` (×${tr.q})` : ""}</li>`);
+    }
+    const sl = (j.sales || []).map(s => `<li>${t("Vendue", "Sold")} <b>${fmtEth(s.eth)} ETH</b>${s.seller ? ` ${t("par", "by")} <a href="?address=${s.seller}">${short(s.seller)}</a>` : ""} ${t("à", "to")} <a href="?address=${s.buyer}">${short(s.buyer)}</a>${s.old ? t(" (ancien marché)", " (old market)") : ""} · <a href="https://voyager.online/tx/${s.tx}" target="_blank" rel="noopener">tx ↗</a></li>`);
+    el.innerHTML = (rows.length || sl.length)
+      ? (rows.length ? `<h3 class="sub">${t("Propriétaires successifs", "Owners over time")}</h3><ol class="plain prov">${rows.join("")}</ol>` : "")
+        + (sl.length ? `<h3 class="sub">${t("Ventes de cet exemplaire", "Sales of this copy")}</h3><ol class="plain prov">${sl.join("")}</ol>` : "")
+      : `<p class="hint">${t("Aucun historique trouvé pour cet exemplaire.", "No history found for this copy.")} <a href="https://voyager.online/nft/${CONTRACT}/${d.id}" target="_blank" rel="noopener">Voyager ↗</a></p>`;
+  } catch (e) { el.innerHTML = `<p class="hint">${t("Historique indisponible pour l'instant.", "History unavailable right now.")}</p>`; }
+}
 async function openAt(k) {
   cur = (k + view.length) % view.length; const d = view[cur];
   if (!hd[d.id]) { try { await hdMeta(d.id); } catch (e) {} }
+  await Promise.race([loadMarket(), new Promise(r => setTimeout(r, 1500))]);
+  const g = d.r === "K" ? null : mModel(modelOf(d.id)), tk = mkt && mkt.byToken[d.id], c = SCARCE[d.r];
   $("sheet").innerHTML = `
     <div class="frame big ${frameCls(d)}">${hd[d.id] && hd[d.id].anim
       ? `<video src="${hd[d.id].anim}" poster="${srcOf(d)}" autoplay loop muted playsinline disablepictureinpicture></video>`
       : `<img src="${srcOf(d)}" alt="">`}</div>
     <div><h2>${esc(d.a)}</h2><dl>
-      <dt>Rareté</dt><dd><span class="pill r-${d.r}">${RN[d.r]}</span></dd>
-      ${d.r === "K" ? "" : `<dt>N° de série</dt><dd>#${d.n}</dd>`}
-      <dt>Saison</dt><dd>${d.s}</dd><dt>Exemplaires</dt><dd>${d.q}</dd>
-      ${hd[d.id] ? `<dt>Média HD</dt><dd><a href="${hd[d.id].anim || hd[d.id].img}" target="_blank" rel="noopener">IPFS ↗</a></dd>` : ""}
-      <dt>Token</dt><dd><a href="https://voyager.online/nft/${CONTRACT}/${d.id}" target="_blank" rel="noopener">Voir sur Voyager ↗</a></dd>
-    </dl><div class="nav"><button type="button" id="prev">← Précédente</button><button type="button" id="next">Suivante →</button></div></div>`;
+      <dt>${t("Rareté", "Rarity")}</dt><dd><span class="pill r-${d.r}">${RN[d.r]}</span></dd>
+      ${d.r === "K" ? "" : `<dt>${t("N° de série", "Serial")}</dt><dd>#${d.n}${c && c.max ? ` / ${c.max} ${t("max", "max")}` : ""}${lowSerial(d) ? ` · <b>${t("n° bas", "low serial")}</b>` : ""}</dd>`}
+      <dt>${t("Saison", "Season")}</dt><dd>${d.s}</dd><dt>${t("Exemplaires", "Copies")}</dt><dd>${d.q}</dd>
+      ${tk ? `<dt>${t("Cet exemplaire", "This copy")}</dt><dd>${t("dernière vente", "last sold for")} ${fmtEth(tk.last)} ETH (${tk.n} ${t("vente(s)", "sale(s)")})</dd>` : ""}
+      ${g ? `<dt>${t("Ce modèle", "This model")}</dt><dd>${g.n} ${t("ventes", "sales")} · ${t("dernière", "last")} ${fmtEth(g.last)} ETH · ${t("moyenne", "average")} ${fmtEth(g.avg)} · ${fmtEth(g.min)} → ${fmtEth(g.max)} ETH</dd>` : ""}
+      ${hd[d.id] ? `<dt>${t("Média HD", "HD media")}</dt><dd><a href="${hd[d.id].anim || hd[d.id].img}" target="_blank" rel="noopener">IPFS ↗</a></dd>` : ""}
+      <dt>Token</dt><dd><a href="https://voyager.online/nft/${CONTRACT}/${d.id}" target="_blank" rel="noopener">${t("Voir sur Voyager", "View on Voyager")} ↗</a></dd>
+    </dl><div id="prov"><p class="hint">${t("Lecture de l'historique de cet exemplaire…", "Reading this copy's history…")}</p></div>
+    <div class="nav"><button type="button" id="prev">${t("← Précédente", "← Previous")}</button><button type="button" id="next">${t("Suivante →", "Next →")}</button></div></div>`;
   $("prev").onclick = () => openAt(cur - 1); $("next").onclick = () => openAt(cur + 1);
   if (!$("dlg").open) $("dlg").showModal();
+  if (d.r !== "K") provenance(d); else $("prov").innerHTML = "";
 }
 $("grid").addEventListener("click", e => { const c = e.target.closest(".card"); if (c) openAt(+c.dataset.k); });
 $("dlgClose").onclick = () => $("dlg").close();
@@ -365,26 +450,26 @@ document.addEventListener("keydown", e => { if (!$("dlg").open) return; if (e.ke
 
 $("f").addEventListener("submit", e => {
   e.preventDefault(); const a = normAddr($("addr").value);
-  if (!a) { $("status").textContent = "Adresse invalide : elle doit commencer par 0x et ne contenir que des caractères 0-9 et a-f."; return; }
-  history.replaceState(null, "", "?address=" + a + location.hash); load(a);
+  if (!a) { $("status").textContent = t("Adresse invalide : elle doit commencer par 0x et ne contenir que des caractères 0-9 et a-f.", "Invalid address: it must start with 0x and contain only 0-9 and a-f."); return; }
+  const u = new URL(location.href); u.searchParams.set("address", a); history.replaceState(null, "", u.pathname + u.search + location.hash); load(a);
 });
 $("demo").onclick = () => { $("addr").value = DEMO; $("f").requestSubmit(); };
 
 function route() {
   const v = ["explorer", "dex", "tuto", "outil"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "explorer";
   if (v === "dex") loadDex();
-  document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
+  document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v || (!!s.dataset.lang && s.dataset.lang !== LANG));
   document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v && !a.classList.contains("mark") ? "page" : "false"));
 }
 addEventListener("hashchange", route); route();
 document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
   const el = $(b.dataset.copy);
-  try { await navigator.clipboard.writeText(el.textContent); b.textContent = "Copié"; }
-  catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Sélectionné, fais Ctrl+C"; }
+  try { await navigator.clipboard.writeText(el.textContent); b.textContent = t("Copié", "Copied"); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = t("Sélectionné, fais Ctrl+C", "Selected, press Ctrl+C"); }
 }));
 const q = new URLSearchParams(location.search).get("address");
 if (window.RR_ME) {
-  document.body.classList.add("me"); document.title = "Mon profil · Rules Rescue";
-  $("addr").value = window.RR_ME; load(window.RR_ME).then(() => { $("pname").textContent = "Mon profil"; });
+  document.body.classList.add("me"); document.title = t("Mon profil · Rules Rescue", "My profile · Rules Rescue");
+  $("addr").value = window.RR_ME; load(window.RR_ME).then(() => { $("pname").textContent = t("Mon profil", "My profile"); });
 } else if (q && normAddr(q)) { $("addr").value = normAddr(q); load(normAddr(q)); }
 </script>
