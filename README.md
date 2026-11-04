@@ -11,6 +11,7 @@ Site public : **https://rules.elie.place** (Explorer, guide de récupération, o
 | `script/rules_rescue.py` | Outil local : `find` (retrouve le vieux compte Argent X à partir de la seed, hors ligne), `check` (état on-chain), `migrate` (simule puis, avec `--execute`, déploie le compte et transfère les cartes). |
 | `site/src/` | Sources du site : `head.html` (styles), `app.html` (explorateur), `guide.html` (guide + outil), `worker.template.js` (Cloudflare Worker). |
 | `site/build.py` | Assemble `site/dist/index.html` et `site/dist/worker.js`. |
+| `app/` | Nouvelle interface : fork non officiel de [ruleslabs/interface](https://github.com/ruleslabs/interface) (ISC, Charles Lanier), branché sur le Worker. Aperçu sur beta.rules.elie.place. |
 
 ## Pourquoi les cartes « disparaissent »
 

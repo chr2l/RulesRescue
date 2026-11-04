@@ -16,6 +16,12 @@
 - `/moi` : profil privé (collection Ready), protégé par l'app Cloudflare Access « rules.elie.place/moi » ; le worker refuse sans en-tête Access.
 - Ne jamais nommer une fonction globale `history` (écrase window.history).
 - À faire : parcours Braavos non testé.
-- Droits : le dépôt ruleslabs/interface n'a pas de licence → ne reprendre ni logo, ni images, ni sons ; seulement palette et polices Google.
+
+## App React (`app/`, fork de ruleslabs/interface)
+- Build : `cd app && yarn install --ignore-scripts && yarn build` (prebuild : copie Tuto/Outil depuis `site/src/guide.html`, compile les traductions). Pas de typecheck en prod.
+- L'API GraphQL Rules est morte : `src/graphql/data/__generated__/types-and-hooks.ts` est un stub ; les données passent par `src/rescue/api.ts` (Worker `/api/cards`, `/api/meta`, `/api/dex`, `/img/{id}`).
+- Un profil = `/user/0xADRESSE/cards|packs`. Pages ajoutées : `/dex`, `/tuto`, `/outil`. Textes en français en dur (locale par défaut fr-FR).
+- Aperçu : Worker `rules-rescue-beta` (`app/wrangler.toml`, `app/worker/index.js`, relaie `/api`, `/img`, `/ipfs` vers rules.elie.place), déployé par `.github/workflows/deploy-beta.yml` avec le secret `CLOUDFLARE_API_TOKEN`. Ne basculer rules.elie.place qu'avec l'accord de l'utilisateur.
+- Droits : ruleslabs/interface n'a pas de fichier LICENSE mais son package.json déclare ISC (Charles Lanier). Le 04/11/2026 l'utilisateur a demandé de forker l'app (dossier `app/`), d'en réutiliser les images/sons et le logo Rules S2 complété par « RESCUE » dans le même style (`app/src/images/logo-rescue.svg`). Garder `app/LICENSE` et la mention « non officiel » (bandeau + badge du header + footer).
 
 - rtk actif (hook) : sortie Bash compressée auto. Sortie brute : `rtk bypass <cmd>`. Read/Grep/Glob non concernés.
