@@ -136,6 +136,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
 .bdg svg { width: 36px; height: 36px; flex: none; }
 .bdg span { display: grid; line-height: 1.2; } .bdg small { font: 500 12px/1.3 var(--mono); color: var(--muted); }
 .lowser { position: absolute; left: 6px; top: 6px; width: 26px; height: 26px; z-index: 2; } .lowser svg { width: 100%; height: 100%; }
+.tier { position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; z-index: 2; } .tier svg { width: 100%; height: 100%; }
 .dexbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
 .card.dex { cursor: default; } .card.dex.miss .frame { filter: grayscale(1) brightness(.45); }
 .card.dex.miss:hover .frame { filter: grayscale(.4) brightness(.8); }
@@ -227,7 +228,6 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
 </div>
 
 <main class="wrap">
-  <div class="badges" id="badges" hidden></div>
   <div class="grid" id="grid"></div>
   <div class="empty" id="empty" hidden></div>
 </main>
@@ -244,6 +244,7 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
     <select id="dexSeason" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
     <select id="dexSort" aria-label="Tri"><option value="artist">Tri : artiste</option><option value="rar">Tri : rareté</option><option value="season">Tri : saison</option><option value="owned">Tri : possédées d'abord</option><option value="supply">Tri : tirage (plus rares d'abord)</option></select>
   </div>
+  <div class="badges" id="badges" hidden></div>
   <div class="grid" id="dexGrid"></div>
 </section>
 
@@ -486,7 +487,7 @@ async function load(addr) {
       return m ? { ...m, q: x.q, i } : { id: x.id, a: "Carte non identifiée", r: "C", n: serial, s: 0, q: x.q, i };
     });
     $("status").innerHTML = `Compte <a href="https://voyager.online/contract/${addr}" target="_blank" rel="noopener">${addr.slice(0, 8)}…${addr.slice(-6)}</a> · ${deployed}.`;
-    stats(); badges(); fillArtists(); $("bar").hidden = false; render(); renderDex();
+    stats(); fillArtists(); $("bar").hidden = false; render(); renderDex();
   } catch (e) {
     $("status").textContent = "Lecture impossible pour l'instant (" + e.message + "). Réessaie dans une minute.";
   }
@@ -564,17 +565,18 @@ const star = (bg, fg) => `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><lin
 const TIERS = [[50, star("url(#g50)", "#111"), "50"], [20, star("#9f04dc", "#fff"), "20"], [10, star("#e53935", "#fff"), "10"], [5, star("#f5c518", "#fff"), "5"]];
 const BADGE = { hash: `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="gh" cx=".45" cy=".4" r=".65"><stop offset="0" stop-color="#3bd16f"/><stop offset="1" stop-color="#159a3e"/></radialGradient></defs><circle cx="20" cy="20" r="19" fill="url(#gh)"/><path d="M16 9l-1.6 22M25.6 9L24 31M10 16h21M9 24.5h21" stroke="#fff" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg>` };
 const lowSerial = d => (d.r === "H" || d.r === "P") ? d.n > 0 && d.n < 25 : (d.r === "C" || d.r === "W") ? d.n > 0 && d.n < 250 : false;
-function badges() {
-  const groups = {};
-  items.filter(d => d.r !== "K").forEach(d => { const k = d.a + "|" + d.r; (groups[k] = groups[k] || { a: d.a, r: d.r, q: 0, low: [] }).q += d.q; if (lowSerial(d)) groups[k].low.push(d.n); });
+// Un badge par modèle (artiste + saison + rareté), affiché seulement dans le Dex.
+const tierOf = q => TIERS.find(([n]) => q >= n);
+function badges(L, low) {
   const earned = [];
-  for (const g of Object.values(groups)) {
-    const t = TIERS.find(([n]) => g.q >= n);
-    if (t) earned.push(`<div class="bdg" title="${esc(g.a)} · ${RN[g.r]} : ${g.q} cartes">${t[1]}<span><b>${esc(g.a)}</b><small>${RN[g.r]} · ${g.q} cartes (palier ${t[2]})</small></span></div>`);
-    if (g.low.length) earned.push(`<div class="bdg" title="N° de série bas">${BADGE.hash}<span><b>${esc(g.a)}</b><small>${RN[g.r]} · n° ${g.low.sort((x, y) => x - y).slice(0, 4).join(", ")}</small></span></div>`);
+  for (const x of L) {
+    if (x.r === "K" || !x.q) continue;
+    const lab = `${RN[x.r]} · S${x.s || "?"}`, t = tierOf(x.q), n = low[x.m] || [];
+    if (t) earned.push(`<div class="bdg" title="${esc(x.a)} · ${lab} : ${x.q} cartes">${t[1]}<span><b>${esc(x.a)}</b><small>${lab} · ${x.q} cartes (palier ${t[2]})</small></span></div>`);
+    if (n.length) earned.push(`<div class="bdg" title="N° de série bas">${BADGE.hash}<span><b>${esc(x.a)}</b><small>${lab} · n° ${n.sort((a, b) => a - b).slice(0, 4).join(", ")}</small></span></div>`);
   }
   $("badges").hidden = !earned.length;
-  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">Étoile : 5, 10, 20 ou 50 cartes d'un même artiste dans la même rareté. # : n° de série sous 25 (holo, platinium) ou sous 250 (common, halloween).</p>` : "";
+  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">Un badge par carte (même artiste, même saison, même rareté). Étoile : 5, 10, 20 ou 50 exemplaires. # : n° de série sous 25 (holo, platinium) ou sous 250 (common, halloween).</p>` : "";
 }
 
 // Dex : tous les modèles de cartes (liste construite depuis les événements de création du contrat).
@@ -594,16 +596,17 @@ async function loadDex() {
 }
 function renderDex() {
   if (!dex) return;
-  const M = (1n << 128n) - 1n, owned = {};
-  items.forEach(d => { const lo = (BigInt(d.id) & M).toString(16); owned[lo] = (owned[lo] || 0) + d.q; });
+  const M = (1n << 128n) - 1n, owned = {}, low = {};
+  items.forEach(d => { const lo = (BigInt(d.id) & M).toString(16); owned[lo] = (owned[lo] || 0) + d.q; if (lowSerial(d)) (low[lo] = low[lo] || []).push(d.n); });
   const L = dex.map(x => { const h = hd[x.id] || {}; return { ...x, a: h.a || "…", r: h.r || "C", s: h.s || 0, q: owned[x.m] || 0 }; })
     .filter(x => x.r !== "K" || dexState.rar === "all")
     .filter(x => (dexState.own === "all" || (dexState.own === "own") === (x.q > 0)) && (dexState.rar === "all" || x.r === dexState.rar) && (dexState.season === "all" || String(x.s) === dexState.season));
   const by = { artist: (x, y) => x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r] || x.s - y.s, rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"), season: (x, y) => x.s - y.s || x.a.localeCompare(y.a, "fr") || RORD[x.r] - RORD[y.r], owned: (x, y) => (y.q > 0) - (x.q > 0) || x.a.localeCompare(y.a, "fr"), supply: (x, y) => x.n - y.n || x.a.localeCompare(y.a, "fr") }[dexState.sort];
   L.sort(by);
+  badges(L, low);
   const nOwn = dex.filter(x => owned[x.m]).length;
   $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} modèles possédés dans la collection chargée.` : `${dex.length} modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.`;
-  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.q ? `<span class="qty">×${x.q}</span>` : ""}</div><div class="meta"><strong>${esc(x.a)}</strong><span><em class="pill r-${x.r}">${RN[x.r]}</em> S${x.s || "?"} · ${x.n} créées</span></div></div>`).join("");
+  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.q ? `<span class="qty">×${x.q}</span>` : ""}${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="Palier ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="N° de série bas">${BADGE.hash}</span>` : ""}</div><div class="meta"><strong>${esc(x.a)}</strong><span><em class="pill r-${x.r}">${RN[x.r]}</em> S${x.s || "?"} · ${x.n} créées</span></div></div>`).join("");
 }
 $("dexOwn").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; dexState.own = b.dataset.v; document.querySelectorAll("#dexOwn button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderDex(); });
 for (const [id, k] of [["dexRar", "rar"], ["dexSeason", "season"], ["dexSort", "sort"]]) $(id).addEventListener("change", e => { dexState[k] = e.target.value; renderDex(); });
@@ -680,7 +683,7 @@ function render() {
     <button class="card" type="button" data-k="${k}" data-id="${d.id}">
       <div class="frame ${frameCls(d)}">
         <img src="${srcOf(d)}" ${hd[d.id] ? 'data-hd="1"' : ""} onerror="if(this.dataset.hd){this.removeAttribute('data-hd');this.src='/img/${d.id}'}" alt="${esc(d.r === "K" ? d.a : d.a + " " + RN[d.r] + " n°" + d.n)}" loading="lazy" decoding="async">
-        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}${lowSerial(d) ? `<span class="lowser" title="N° de série bas">${BADGE.hash}</span>` : ""}
+        ${d.q > 1 ? `<span class="qty">×${d.q}</span>` : ""}
       </div>
       <div class="meta"><strong>${esc(d.a)}</strong><span><em class="pill r-${d.r}">${RN[d.r]}</em>${d.r === "K" ? "" : "#" + d.n + " ·"} S${d.s}</span></div>
     </button>`).join("");
