@@ -390,14 +390,17 @@ $("fRar").addEventListener("change", () => { state.rars = checked("fRar"); rende
 $("fSeason").addEventListener("change", () => { state.seasons = checked("fSeason"); render(); });
 for (const id of ["kind"]) $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state[id] = b.dataset.v; render(); });
 for (const id of ["artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; if (e.target.value === "price") loadMarket().then(render); render(); });
-$("grid").addEventListener("pointerover", e => {
+// Vidéo de la carte au survol (collection et Dex).
+const hoverVideo = e => {
   const c = e.target.closest(".card"); if (!c || e.pointerType === "touch") return;
   const h = hd[c.dataset.id]; const f = c.querySelector(".frame"); if (!h || !h.anim || f.querySelector("video")) return;
   const v = document.createElement("video"); v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto"; v.className = "anim";
   v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); v.src = h.anim;
   v.addEventListener("playing", () => v.classList.add("on")); f.appendChild(v); v.play().catch(() => {});
   c.addEventListener("pointerleave", () => v.remove(), { once: true });
-});
+};
+$("grid").addEventListener("pointerover", hoverVideo);
+$("dexGrid").addEventListener("pointerover", hoverVideo);
 $("grid").addEventListener("pointermove", e => {
   const f = e.target.closest(".frame"); if (!f) return; const r = f.getBoundingClientRect();
   f.style.setProperty("--px", ((e.clientX - r.left) / r.width * 100) + "%"); f.style.setProperty("--py", ((e.clientY - r.top) / r.height * 100) + "%");
