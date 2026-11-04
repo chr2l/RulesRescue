@@ -232,10 +232,11 @@ function render() {
 for (const id of ["kind", "rar"]) $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state[id] = b.dataset.v; render(); });
 for (const id of ["season", "artist", "sort"]) $(id).addEventListener("change", e => { state[id] = e.target.value; render(); });
 $("grid").addEventListener("pointerover", e => {
-  const c = e.target.closest(".card"); if (!c || e.pointerType !== "mouse" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c = e.target.closest(".card"); if (!c || e.pointerType === "touch") return;
   const h = hd[c.dataset.id]; const f = c.querySelector(".frame"); if (!h || !h.anim || f.querySelector("video")) return;
-  const v = document.createElement("video"); Object.assign(v, { src: h.anim, muted: true, loop: true, playsInline: true, autoplay: true }); v.className = "anim";
-  v.oncanplay = () => v.classList.add("on"); f.appendChild(v);
+  const v = document.createElement("video"); v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto"; v.className = "anim";
+  v.setAttribute("muted", ""); v.setAttribute("playsinline", ""); v.src = h.anim;
+  v.addEventListener("playing", () => v.classList.add("on")); f.appendChild(v); v.play().catch(() => {});
   c.addEventListener("pointerleave", () => v.remove(), { once: true });
 });
 $("grid").addEventListener("pointermove", e => {
@@ -247,7 +248,7 @@ async function openAt(k) {
   if (!hd[d.id]) { try { await hdMeta(d.id); } catch (e) {} }
   $("sheet").innerHTML = `
     <div class="frame big ${frameCls(d)}">${hd[d.id] && hd[d.id].anim
-      ? `<video src="${hd[d.id].anim}" poster="${srcOf(d)}" autoplay loop muted playsinline controls></video>`
+      ? `<video src="${hd[d.id].anim}" poster="${srcOf(d)}" autoplay loop muted playsinline disablepictureinpicture></video>`
       : `<img src="${srcOf(d)}" alt="">`}</div>
     <div><h2>${esc(d.a)}</h2><dl>
       <dt>Rareté</dt><dd><span class="pill r-${d.r}">${RN[d.r]}</span></dd>
