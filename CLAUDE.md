@@ -4,7 +4,7 @@
 - `script/rules_rescue.py` : Python + starknet-py. Ne jamais logger/écrire la seed. Simulation par défaut, `--execute` + saisie OUI pour envoyer.
 - `site/` : sources dans `src/`, build `python site/build.py` → `dist/worker.js` (Worker Cloudflare `rules-rescue`, domaine rules.elie.place). Données via l'API publique Voyager (`/api/nft-transfers`, `/api/nft/{contract}/{id}`), images relayées par `/img/{id}`.
 - RPC qui accepte les requêtes navigateur : https://api.zan.top/public/starknet-mainnet
-- Style : tokens CSS dans `src/head.html` (sombre, violet #9f04dc, Archivo Black / Inter / Inconsolata). Ne pas reprendre le logo Rules ; mention « non officiel ».
+- Style : look Rules (ruleslabs/interface) dans `src/head.html` : header 57px, onglets soulignés, filtres en colonne, cartes Rules, violet #9f04dc. Logo « RULES RESCUE » en SVG inline dans app.html (wordmark Rules S2 + « RESCUE » redessiné), réutilisé avec l'accord de l'utilisateur (04/11/2026). Toujours la mention « non officiel ».
 - Ne jamais committer de seed, clé privée, ni les images des cartes.
 
 ## Publication & état (30/10/2026)
@@ -16,6 +16,6 @@
 - `/moi` : profil privé (collection Ready), protégé par l'app Cloudflare Access « rules.elie.place/moi » ; le worker refuse sans en-tête Access.
 - Ne jamais nommer une fonction globale `history` (écrase window.history).
 - À faire : parcours Braavos non testé.
-- Droits : le dépôt ruleslabs/interface n'a pas de licence → ne reprendre ni logo, ni images, ni sons ; seulement palette et polices Google.
+- Droits : ruleslabs/interface déclare ISC dans package.json (pas de fichier LICENSE). Repris : palette, mise en page, logo S2 (accord de l'utilisateur). Pas d'images ni de sons du dépôt. L'idée d'un fork React a été abandonnée (PR #12 fermée) : tout reste dans `site/`.
 
 - rtk actif (hook) : sortie Bash compressée auto. Sortie brute : `rtk bypass <cmd>`. Read/Grep/Glob non concernés.
