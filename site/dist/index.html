@@ -130,6 +130,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
 @media (max-width: 760px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important; } }
 @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 .loaded header h1, .loaded header .brand { display: none; }
+.me .lookup { display: none; }
 .loaded header { padding-top: 16px; }
 .loaded .profile { order: -1; }
 body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159,4,220,0) 300px); }
@@ -210,7 +211,7 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
     </div>
     <select id="season" aria-label="Saison"><option value="all">Saisons 1 + 2</option><option value="1">Saison 1</option><option value="2">Saison 2</option></select>
     <select id="artist" aria-label="Artiste"><option value="all">Tous les artistes</option></select>
-    <select id="sort" aria-label="Tri"><option value="rar">Tri : rareté</option><option value="artist">Tri : artiste</option><option value="serial">Tri : n° de série</option></select>
+    <select id="sort" aria-label="Tri"><option value="rar">Tri : rareté</option><option value="artist">Tri : nom A → Z</option><option value="artistZ">Tri : nom Z → A</option><option value="serial">Tri : n° de série ↑</option><option value="serialD">Tri : n° de série ↓</option><option value="season">Tri : saison</option><option value="qty">Tri : exemplaires</option></select>
     <a class="dl" id="dl" href="#">cartes.json</a>
     <div class="count" id="count"></div>
   </div>
@@ -429,7 +430,7 @@ function normAddr(a) {
 async function load(addr) {
   $("status").textContent = "Lecture de la blockchain… (jusqu'à 30 s pour une grosse collection)";
   $("grid").innerHTML = ""; $("stats").innerHTML = ""; $("bar").hidden = true; $("empty").hidden = true;
-  history(addr); profile(addr); document.body.classList.add("loaded");
+  accHistory(addr); profile(addr); document.body.classList.add("loaded");
   try {
     const r = await fetch("/api/cards?address=" + addr);
     const j = await r.json();
@@ -478,7 +479,7 @@ function profile(addr) {
   $("profile").hidden = false;
 }
 
-async function history(addr) {
+async function accHistory(addr) {
   const box = $("hist"), body = $("histBody");
   box.hidden = false; box.open = false;
   body.innerHTML = `<p class="sub">Lecture des transferts et des ventes… (jusqu'à 1 min)</p>`;
@@ -531,7 +532,11 @@ function filtered() {
   const by = {
     rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr") || x.n - y.n,
     artist: (x, y) => (x.r === "K") - (y.r === "K") || x.a.localeCompare(y.a, "fr") || x.n - y.n,
+    artistZ: (x, y) => (x.r === "K") - (y.r === "K") || y.a.localeCompare(x.a, "fr") || x.n - y.n,
     serial: (x, y) => (x.r === "K") - (y.r === "K") || x.n - y.n,
+    serialD: (x, y) => (x.r === "K") - (y.r === "K") || y.n - x.n,
+    season: (x, y) => (x.r === "K") - (y.r === "K") || x.s - y.s || RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"),
+    qty: (x, y) => y.q - x.q || RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, "fr"),
   }[state.sort];
   return out.sort(by);
 }
@@ -634,6 +639,9 @@ document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", asyn
   catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Sélectionné, fais Ctrl+C"; }
 }));
 const q = new URLSearchParams(location.search).get("address");
-if (q && normAddr(q)) { $("addr").value = normAddr(q); load(normAddr(q)); }
+if (window.RR_ME) {
+  document.body.classList.add("me"); document.title = "Mon profil · Rules Rescue";
+  $("addr").value = window.RR_ME; load(window.RR_ME).then(() => { $("pname").textContent = "Mon profil"; });
+} else if (q && normAddr(q)) { $("addr").value = normAddr(q); load(normAddr(q)); }
 </script>
 </body></html>
