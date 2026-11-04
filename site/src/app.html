@@ -57,8 +57,7 @@
   </aside>
   <div class="gridwrap">
     <div class="ghead"><span class="count" id="dexCount"></span><select id="dexSort" aria-label="Tri"><option value="artist" data-en="Sort: artist">Tri : artiste</option><option value="rar" data-en="Sort: rarity">Tri : rareté</option><option value="season" data-en="Sort: season">Tri : saison</option><option value="owned" data-en="Sort: owned first">Tri : possédées d'abord</option><option value="supply" data-en="Sort: supply (rarest first)">Tri : tirage (plus rares d'abord)</option><option value="price" data-en="Sort: last sale price">Tri : dernier prix</option><option value="sales" data-en="Sort: most traded">Tri : plus échangées</option></select></div>
-    <div class="badges" id="badges" hidden></div>
-    <div class="grid" id="dexGrid"></div>
+        <div class="grid" id="dexGrid"></div>
     <p class="hint" id="dexMarket"></p>
   </div>
   </div>
@@ -240,16 +239,11 @@ const BADGE = { hash: `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><radial
 const lowSerial = d => { const c = SCARCE[d.r]; return !!c && c.low > 0 && d.n > 0 && d.n <= c.low; };
 const LOW_HINT = t("# : n° de série bas selon les seuils de Rules (≤ 20 en holo et platinium, ≤ 100 en common et halloween).", "#: low serial by Rules' own thresholds (≤ 20 for holo and platinium, ≤ 100 for common and halloween).");
 const tierOf = q => TIERS.find(([n]) => q >= n);
+// Badges : affichés directement sur les cartes du Dex (étoile = palier d'exemplaires, # = n° de série bas).
 function badges(L, low) {
-  const earned = [], cards = t("cartes", "cards"), tier = t("palier", "tier");
-  for (const x of L) {
-    if (x.r === "K" || !x.q) continue;
-    const lab = `${RN[x.r]} · S${x.s || "?"}`, tr = tierOf(x.q), n = low[x.m] || [];
-    if (tr) earned.push(`<div class="bdg" title="${esc(x.a)} · ${lab} : ${x.q} ${cards}">${tr[1]}<span><b>${esc(x.a)}</b><small>${lab} · ${x.q} ${cards} (${tier} ${tr[2]})</small></span></div>`);
-    if (n.length) earned.push(`<div class="bdg" title="${t("N° de série bas", "Low serial")}">${BADGE.hash}<span><b>${esc(x.a)}</b><small>${lab} · n° ${n.sort((a, b) => a - b).slice(0, 4).join(", ")}</small></span></div>`);
-  }
-  $("badges").hidden = !earned.length;
-  $("badges").innerHTML = earned.length ? `<h3 class="sub">Badges (${earned.length})</h3><div class="bdgs">${earned.join("")}</div><p class="hint">${t("Un badge par carte (même artiste, même saison, même rareté). Étoile : 5, 10, 20 ou 50 exemplaires.", "One badge per card (same artist, season and rarity). Star: 5, 10, 20 or 50 copies.")} ${LOW_HINT}</p>` : "";
+  let n = 0;
+  for (const x of L) { if (x.r === "K" || !x.q) continue; if (tierOf(x.q)) n++; if ((low[x.m] || []).length) n++; }
+  return n;
 }
 
 // La rareté Live (saison 2) n'apparaît que si des cartes Live existent.
@@ -285,11 +279,11 @@ function renderDex() {
   const loc = LOC.slice(0, 2);
   const by = { artist: (x, y) => x.a.localeCompare(y.a, loc) || RORD[x.r] - RORD[y.r] || x.s - y.s, rar: (x, y) => RORD[x.r] - RORD[y.r] || x.a.localeCompare(y.a, loc), season: (x, y) => x.s - y.s || x.a.localeCompare(y.a, loc) || RORD[x.r] - RORD[y.r], owned: (x, y) => (y.q > 0) - (x.q > 0) || x.a.localeCompare(y.a, loc), supply: (x, y) => x.n - y.n || x.a.localeCompare(y.a, loc), price: (x, y) => y.p - x.p || x.a.localeCompare(y.a, loc), sales: (x, y) => y.ns - x.ns || x.a.localeCompare(y.a, loc) }[dexState.sort];
   L.sort(by);
-  badges(L, low);
+  const nB = badges(L, low);
   const nOwn = dex.filter(x => owned[x.m]).length;
-  $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} ${t("modèles possédés dans la collection chargée.", "models owned in the loaded collection.")}` : `${dex.length} ${t("modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.", "card and pack models. Load a collection (Collection tab) to see what you own.")}`;
+  $("dexInfo").textContent = items.length ? `${nOwn} / ${dex.length} ${t("modèles possédés dans la collection chargée", "models owned in the loaded collection")} · ${nB} badges` : `${dex.length} ${t("modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.", "card and pack models. Load a collection (Collection tab) to see what you own.")}`;
   const created = t("créées", "minted"), lastS = t("dernière vente", "last sale");
-  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="${t("Palier", "Tier")} ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="${t("N° de série bas", "Low serial")}">${BADGE.hash}</span>` : ""}</div><div class="meta"><div class="mrow"><strong>${esc(x.a)}</strong>${x.q ? `<em class="pill">×${x.q}</em>` : ""}</div><span class="msub">${RN[x.r]} · S${x.s || "?"} · ${supplyTxt(x)} ${created}</span>${x.p ? `<span class="price" title="${x.ns} ${t("ventes", "sales")} · ${t("moyenne", "average")} ${fmtEth(mModel(x.m).avg)} ETH">${lastS} ${fmtEth(x.p)} ETH · ${x.ns}×</span>` : ""}</div></div>`).join("");
+  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async">${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="${t("Palier", "Tier")} ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="${t("N° de série bas", "Low serial")} : n° ${low[x.m].slice().sort((a, b) => a - b).join(", ")}">${BADGE.hash}</span>` : ""}</div><div class="meta"><div class="mrow"><strong>${esc(x.a)}</strong>${x.q ? `<em class="pill">×${x.q}</em>` : ""}</div><span class="msub">${RN[x.r]} · S${x.s || "?"} · ${supplyTxt(x)} ${created}</span>${x.p ? `<span class="price" title="${x.ns} ${t("ventes", "sales")} · ${t("moyenne", "average")} ${fmtEth(mModel(x.m).avg)} ETH">${lastS} ${fmtEth(x.p)} ETH · ${x.ns}×</span>` : ""}</div></div>`).join("");
   $("dexCount").textContent = `${L.length} ${t("modèles", "models")}`;
   $("dexMarket").textContent = mkt ? t(`Prix : ${mkt.sales} ventes lues sur les marchés Rules${mkt.old ? `, dont ${mkt.old} sur l'ancien marché d'avant fin 2023` : ""}. « Dernière vente » = prix de la dernière vente d'un exemplaire de ce modèle, en ETH, à l'époque.`, `Prices: ${mkt.sales} sales read from the Rules markets${mkt.old ? `, ${mkt.old} of them on the pre-late-2023 market` : ""}. "Last sale" = price of the last sale of any copy of this model, in ETH, at the time.`) : "";
 }
