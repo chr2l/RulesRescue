@@ -3,7 +3,7 @@
 const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36";
 const H = { "user-agent": UA, accept: "application/json", referer: "https://voyager.online/" };
-const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W" };
+const RAR = { common: "C", holographic: "H", platinium: "P", platinum: "P", halloween: "W", live: "L" };
 // Le contenu (page + script) vit dans KV (binding SITE), mis à jour par /admin (jeton ADMIN_TOKEN).
 const ADMIN_PAGE = `<!doctype html><meta charset="utf-8"><title>Mise à jour</title><body style="font:15px system-ui;padding:24px"><p id="s">Envoi…</p><script>
 (async()=>{const s=document.getElementById("s");try{const raw=decodeURIComponent(escape(atob(location.hash.slice(1))));const t=new URLSearchParams(location.search).get("t");
@@ -75,23 +75,97 @@ function parseItem(d, i) {
   return [{ t: "other" }, i + 1];
 }
 
-async function marketEvents() {
-  const key = new Request("https://cache.local/market-events-v1");
+async function cached(name, ttl, build) {
+  const key = new Request("https://cache.local/" + name);
   const hit = await caches.default.match(key);
   if (hit) return hit.json();
+  const out = await build();
+  await caches.default.put(key, new Response(JSON.stringify(out), { headers: { "content-type": "application/json", "cache-control": "max-age=" + ttl } }));
+  return out;
+}
+
+async function allEvents(address, k, to_block, max = 30) {
   const out = []; let token = null, guard = 0;
   do {
-    const f = { address: MARKET, keys: [[FULFILL]], from_block: { block_number: 0 }, to_block: { block_number: 760000 }, chunk_size: 1000 };
+    const f = { address, keys: [[k]], from_block: { block_number: 0 }, to_block, chunk_size: 1000 };
     if (token) f.continuation_token = token;
     const r = await rpc("starknet_getEvents", { filter: f });
-    for (const e of r.events) {
-      const d = e.data; const [a, i] = parseItem(d, 3); const [b] = parseItem(d, i);
-      out.push({ b: e.block_number, tx: e.transaction_hash, from: d[1], to: d[2], offer: a, cons: b });
-    }
+    out.push(...r.events);
     token = r.continuation_token || null;
-  } while (token && guard++ < 30);
-  await caches.default.put(key, new Response(JSON.stringify(out), { headers: { "content-type": "application/json", "cache-control": "max-age=604800" } }));
+  } while (token && guard++ < max);
   return out;
+}
+
+// Marché Cairo 1 (fin 2023 →) : événements FulfillOrder.
+const marketEvents = () => cached("market-events-v1", 604800, async () =>
+  (await allEvents(MARKET, FULFILL, { block_number: 760000 })).map(e => {
+    const d = e.data; const [a, i] = parseItem(d, 3); const [b] = parseItem(d, i);
+    return { b: e.block_number, tx: e.transaction_hash, from: d[1], to: d[2], offer: a, cons: b };
+  }));
+
+// Ancien marché Cairo 0 (2022 → 2023, adresse tirée de l'historique de ruleslabs/sdk-core) :
+// OfferCreated(id.low, id.high, vendeur, prix) puis OfferAccepted(id.low, id.high, acheteur).
+const OLD_MARKET = "0x063a4b3b0122cdaa6ba244739add94aed1d31e3330458cda833a8d119f28cbe8";
+const OFFER_CREATED = "0x3dfc158c05b32ed2ffabe664bf6edb241c38aa671d19165307582cde75743b6";
+const OFFER_ACCEPTED = "0x309058ad25cd782e894bb5ed51758424e0fcfaf9b0e2996dec721837242fd4d";
+const oldSales = () => cached("old-market-sales-v1", 604800, async () => {
+  const created = await allEvents(OLD_MARKET, OFFER_CREATED, "latest", 40);
+  const accepted = await allEvents(OLD_MARKET, OFFER_ACCEPTED, "latest", 40);
+  const evs = [...created.map(e => ({ e, c: 1 })), ...accepted.map(e => ({ e, c: 0 }))]
+    .sort((x, y) => x.e.block_number - y.e.block_number || x.c - y.c);
+  const offer = new Map(), out = [];
+  for (const { e, c } of evs) {
+    const d = e.data, id = (BigInt(d[0]) + (BigInt(d[1]) << 128n)).toString();
+    if (c) offer.set(id, { seller: d[2], wei: BigInt(d[3]).toString() });
+    else { const o = offer.get(id); out.push({ b: e.block_number, tx: e.transaction_hash, id, seller: o ? o.seller : null, buyer: d[2], wei: o ? o.wei : "0", old: 1 }); }
+  }
+  return out;
+});
+
+// Toutes les ventes, sous une forme commune { b, tx, id, seller, buyer, wei }.
+async function sales() {
+  const out = [];
+  for (const e of await marketEvents()) {
+    if (e.offer.t === "erc1155" && e.cons.t === "erc20") out.push({ b: e.b, tx: e.tx, id: e.offer.id, seller: e.from, buyer: e.to, wei: e.cons.amt });
+    else if (e.offer.t === "erc20" && e.cons.t === "erc1155") out.push({ b: e.b, tx: e.tx, id: e.cons.id, seller: e.to, buyer: e.from, wei: e.offer.amt });
+  }
+  let oldOk = true;
+  try { out.push(...await oldSales()); } catch (e) { oldOk = false; }
+  out.oldOk = oldOk;
+  return out;
+}
+
+const ethOf = w => Number(BigInt(w || 0)) / 1e18;
+async function market() {
+  return cached("market-summary-v1", 86400, async () => {
+    const all = await sales(), M = (1n << 128n) - 1n, byModel = {}, byToken = {};
+    for (const s of all.sort((x, y) => x.b - y.b)) {
+      const v = ethOf(s.wei); if (!(v > 0)) continue;
+      const m = (BigInt(s.id) & M).toString(16);
+      const g = byModel[m] = byModel[m] || { n: 0, sum: 0, min: v, max: v, last: 0, lb: 0 };
+      g.n++; g.sum += v; g.min = Math.min(g.min, v); g.max = Math.max(g.max, v); g.last = v; g.lb = s.b;
+      const t = byToken[s.id] = byToken[s.id] || { n: 0, last: 0 };
+      t.n++; t.last = v;
+    }
+    for (const g of Object.values(byModel)) { g.avg = +(g.sum / g.n).toFixed(5); delete g.sum; }
+    return { sales: all.length, old: all.filter(s => s.old).length, oldOk: all.oldOk, byModel, byToken };
+  });
+}
+
+// Historique d'une carte : transferts (Voyager) + ventes trouvées sur les deux marchés.
+async function token(id) {
+  const big = BigInt(id), tr = [];
+  try {
+    let path = `/nft-transfers?contract_address=${CONTRACT}&token_id=${id}&type=erc1155&limit=100`, pages = 0;
+    while (path && pages++ < 3) {
+      const j = await vget(path, 3600);
+      for (const t of j.items || []) if (t.tokenId && BigInt(t.tokenId) === big && BigInt(t.nftContractAddress) === BigInt(CONTRACT)) tr.push({ t: t.timestamp, from: norm(t.fromAddress), to: norm(t.toAddress), q: Number(t.quantity || 1), tx: t.txHash || t.transactionHash || null });
+      if (!(j.items || []).length) break;
+      path = j.pagination && j.pagination.next ? j.pagination.next : null;
+    }
+  } catch (e) {}
+  const sl = (await sales()).filter(s => BigInt(s.id) === big).map(s => ({ b: s.b, tx: s.tx, seller: s.seller && norm(s.seller), buyer: norm(s.buyer), eth: ethOf(s.wei), old: !!s.old }));
+  return { id, transfers: tr.sort((x, y) => x.t - y.t), sales: sl.sort((x, y) => x.b - y.b) };
 }
 
 async function history(addr) {
@@ -121,16 +195,12 @@ async function history(addr) {
   for (const [t, q] of mints) { const g = groups[groups.length - 1]; if (g && t - g.e <= 120) { g.n += q; g.e = t; } else groups.push({ b: t, e: t, n: q }); }
   const hist = {}; groups.forEach(g => hist[g.n] = (hist[g.n] || 0) + 1);
   s.mintGroups = { total: groups.length, sizes: hist, packs: groups.filter(g => g.n >= 3 && g.n <= 5).length, big: groups.filter(g => g.n > 5).map(g => ({ t: g.b, n: g.n })) };
-  const ev = await marketEvents();
-  const sales = [], buys = [];
-  for (const e of ev) {
-    if (BigInt(e.from) === me) (e.offer.t === "erc1155" ? sales : buys).push(e);
-    if (BigInt(e.to) === me) (e.offer.t === "erc1155" ? buys : sales).push(e);
-  }
-  const eth = list => list.reduce((x, e) => x + BigInt(e.offer.t === "erc20" ? e.offer.amt : e.cons.t === "erc20" ? e.cons.amt : "0"), 0n);
-  s.marketTotal = ev.length;
-  s.sold = sales.length; s.soldEth = (Number(eth(sales)) / 1e18).toFixed(4);
-  s.bought = buys.length; s.boughtEth = (Number(eth(buys)) / 1e18).toFixed(4);
+  const ev = await sales();
+  const sold = ev.filter(e => e.seller && BigInt(e.seller) === me), bought = ev.filter(e => BigInt(e.buyer) === me);
+  const eth = list => list.reduce((x, e) => x + BigInt(e.wei || 0), 0n);
+  s.marketTotal = ev.length; s.marketOld = ev.filter(e => e.old).length; s.marketOldOk = ev.oldOk;
+  s.sold = sold.length; s.soldEth = (Number(eth(sold)) / 1e18).toFixed(4);
+  s.bought = bought.length; s.boughtEth = (Number(eth(bought)) / 1e18).toFixed(4);
   return s;
 }
 
@@ -168,6 +238,12 @@ export default {
         if (!/^[a-z0-9.\/*_-]{3,120}$/i.test(q) || !/rules\.art/.test(q)) return json({ error: "requête invalide" }, 400);
         const r = await fetch("https://web.archive.org/cdx/search/cdx?url=" + encodeURIComponent(q) + "&output=json&collapse=urlkey&fl=original,mimetype,timestamp&filter=statuscode:200&limit=" + Math.min(Number(u.searchParams.get("limit")) || 200, 2000), { headers: { "user-agent": UA } });
         return new Response(await r.text(), { status: r.status, headers: { "content-type": "application/json", ...CORS } });
+      }
+      if (u.pathname === "/api/market") return new Response(JSON.stringify(await market()), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=3600", ...CORS } });
+      if (u.pathname === "/api/token") {
+        const id = u.searchParams.get("id") || "";
+        if (!/^\d{1,80}$/.test(id)) return json({ error: "id invalide" }, 400);
+        return new Response(JSON.stringify(await token(id)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...CORS } });
       }
       if (u.pathname === "/api/dex") return new Response(await env.SITE.get("dex") || "[]", { headers: { "content-type": "application/json", "cache-control": "public, max-age=3600", ...CORS } });
       if (u.pathname === "/api/meta") {

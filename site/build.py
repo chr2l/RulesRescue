@@ -4,7 +4,7 @@ Le Worker lit la page et le script dans KV ; /admin les met à jour (voir README
 import json, pathlib
 here = pathlib.Path(__file__).parent
 src = here / "src"
-html = (src / "head.html").read_text() + "</head><body>" + (src / "app.html").read_text().replace("__GUIDE__", (src / "guide.html").read_text()) + "</body></html>"
+html = (src / "head.html").read_text() + "</head><body>" + (src / "app.html").read_text().replace("__GUIDE__", (src / "guide.html").read_text() + (src / "guide.en.html").read_text()) + "</body></html>"
 script = (here.parent / "script" / "rules_rescue.py").read_text()
 worker = (src / "worker.template.js").read_text()
 (here / "dist").mkdir(exist_ok=True)
