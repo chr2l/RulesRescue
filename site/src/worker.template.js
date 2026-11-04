@@ -104,17 +104,18 @@ async function history(addr) {
     path = j.pagination && j.pagination.next ? j.pagination.next : null;
   }
   const s = { transfers: tr.length, packsReceived: 0, packsOpened: 0, cardsFromPacks: 0, cardsReceived: 0, cardsSent: 0, packsSent: 0, packsReceivedFromUsers: 0, firstActivity: null, lastActivity: null, partners: 0 };
-  const partners = new Set();
+  const partners = new Set(), src = new Map();
   for (const t of tr) {
     const q = Number(t.quantity || 1), pack = BigInt(t.tokenId) < (1n << 64n);
     const from = BigInt(t.fromAddress), to = BigInt(t.toAddress);
     const ts = t.timestamp; if (!s.firstActivity || ts < s.firstActivity) s.firstActivity = ts; if (!s.lastActivity || ts > s.lastActivity) s.lastActivity = ts;
     if (to === me && from === 0n) { if (pack) s.packsReceived += q; else s.cardsFromPacks += q; }
     else if (from === me && to === 0n) { if (pack) s.packsOpened += q; }
-    else if (to === me) { if (pack) s.packsReceivedFromUsers += q; else s.cardsReceived += q; partners.add(t.fromAddress); }
+    else if (to === me) { if (pack) s.packsReceivedFromUsers += q; else s.cardsReceived += q; partners.add(t.fromAddress); const k = norm(t.fromAddress), o = src.get(k) || { a: k, q: 0, t: ts }; o.q += q; if (ts > o.t) o.t = ts; src.set(k, o); }
     else if (from === me) { if (pack) s.packsSent += q; else s.cardsSent += q; partners.add(t.toAddress); }
   }
   s.partners = partners.size;
+  s.sources = [...src.values()].sort((x, y) => y.q - x.q).slice(0, 10);
   const ev = await marketEvents();
   const sales = [], buys = [];
   for (const e of ev) {

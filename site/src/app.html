@@ -146,10 +146,39 @@ async function accHistory(addr) {
     ];
     body.innerHTML = `<p class="sub">Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.transfers} transferts de cartes ou de packs.</p>`
       + '<div class="counter">' + rows.map(([n, l, t]) => `<div class="stat" title="${esc(t)}"><b>${n}</b><small>${l}</small>${t ? `<span class="why">${esc(t)}</span>` : ""}</div>`).join("") + "</div>"
-      + `<p class="sub">Les ventes comptent les ordres exécutés sur le contrat de marché Rules (${h.marketTotal} ventes au total sur toute la plateforme).</p>`;
+      + `<p class="sub">Les ventes comptent les ordres exécutés sur le contrat de marché Rules (${h.marketTotal} ventes au total sur toute la plateforme).</p>`
+      + '<div id="chain"></div>';
+    chain(addr, h);
   } catch (e) {
     body.innerHTML = `<p class="sub">Historique indisponible pour l'instant (${esc(e.message)}).</p>`;
   }
+}
+
+// Remonte les comptes qui ont envoyé des cartes en masse (migrations) vers cette adresse, puis leurs propres sources.
+async function chain(addr, h0) {
+  const el = $("chain"), seen = new Set([addr]), links = [], hist = { [addr]: h0 };
+  const short = a => a.slice(0, 6) + "…" + a.slice(-4);
+  el.innerHTML = '<p class="sub">Recherche des comptes d\'origine…</p>';
+  let frontier = [addr];
+  for (let depth = 0; depth < 3 && frontier.length; depth++) {
+    const next = [];
+    for (const a of frontier) for (const s of (hist[a].sources || []).filter(s => s.q >= 20 && !seen.has(s.a))) {
+      seen.add(s.a); links.push({ from: s.a, to: a, q: s.q, t: s.t });
+      try { const r = await fetch("/api/history?address=" + s.a); if (r.ok) { hist[s.a] = await r.json(); next.push(s.a); } } catch (e) {}
+    }
+    frontier = next;
+  }
+  if (!links.length) { el.innerHTML = ""; return; }
+  const d = t => t ? new Date(t * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "?";
+  const all = [addr, ...links.map(l => l.from)].filter(a => hist[a]);
+  const sum = k => all.reduce((x, a) => x + (Number(hist[a][k]) || 0), 0);
+  const eth = k => all.reduce((x, a) => x + (parseFloat(hist[a][k]) || 0), 0).toFixed(4);
+  const first = Math.min(...all.map(a => hist[a].firstActivity || Infinity));
+  el.innerHTML = '<h3 class="sub">Comptes d\'origine</h3><ol class="plain">'
+    + links.map(l => { const h = hist[l.from] || {}; return `<li><a href="?address=${l.from}">${short(l.from)}</a> → ${short(l.to)} : <b>${l.q}</b> objets envoyés (dernier envoi le ${d(l.t)}).`
+      + (h.transfers ? ` Actif du ${d(h.firstActivity)} au ${d(h.lastActivity)} · ${h.cardsFromPacks} cartes reçues de Rules · ${h.sold} ventes · ${h.bought} achats.` : "") + "</li>"; }).join("")
+    + "</ol>"
+    + `<p class="sub">Sur toute la chaîne (${all.length} comptes) depuis le ${d(first)} : ${sum("cardsFromPacks")} cartes reçues de Rules, ${sum("packsReceived")} packs reçus de Rules, ${sum("packsOpened")} packs ouverts sur la blockchain, ${sum("sold")} ventes (${eth("soldEth")} ETH) et ${sum("bought")} achats (${eth("boughtEth")} ETH) sur le marché.</p>`;
 }
 
 function stats() {
