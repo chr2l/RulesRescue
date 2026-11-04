@@ -14,6 +14,12 @@ if ! command -v rtk >/dev/null 2>&1 && [ ! -x "$BIN/rtk" ]; then
   rm -rf "$TMP"
 fi
 
+# Le hook est déclaré dans le dépôt, pas en global : coupe l'avertissement "No hook installed"
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}/rtk/config.toml"
+if [ -x "$BIN/rtk" ] && ! grep -q suppress_hook_warning "$CFG" 2>/dev/null; then
+  mkdir -p "$(dirname "$CFG")" && printf '\n[hooks]\nsuppress_hook_warning = true\n' >> "$CFG"
+fi
+
 # Rend rtk visible dans le shell Bash de Claude si ~/.local/bin n'est pas dans le PATH
 if [ -x "$BIN/rtk" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   case ":$PATH:" in *":$BIN:"*) ;; *) echo "export PATH=\"$BIN:\$PATH\"" >> "$CLAUDE_ENV_FILE" ;; esac
