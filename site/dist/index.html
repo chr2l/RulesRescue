@@ -146,6 +146,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; font-famil
 .card.dex.miss:hover .frame { filter: grayscale(.4) brightness(.8); }
 .me .lookup { display: none; }
 .loaded header { padding-top: 16px; }
+.loaded [data-view=explorer] > header { padding-top: 0; }
 .loaded .profile { order: -1; }
 body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159,4,220,0) 300px); }
 .doc { padding-block: 40px 64px; max-width: 820px; }
@@ -188,8 +189,85 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
 .plain { padding-left: 20px; display: grid; gap: 8px; max-width: 68ch; }
 .doc .code { white-space: pre-wrap; }
 .empty { max-width: 65ch; font-family: var(--body); line-height: 1.6; }
+
+/* Style Rules (ruleslabs/interface, ISC) : header 57px, onglets soulignés, filtres en colonne */
+.topnav { background: var(--bg); border-bottom: 1px solid var(--line); }
+.topnav .wrap { max-width: none; padding-block: 0; min-height: 57px; gap: 0 4px; flex-wrap: nowrap; }
+.topnav .mark { display: flex; align-items: center; padding: 0 16px 0 0; height: 57px; color: var(--fg); }
+.topnav .mark .logo { height: 16px; width: auto; display: block; }
+.topnav .badge { font: 600 11px/1 var(--body); letter-spacing: .04em; color: #fff; background: var(--accent); border: 0; padding: 5px 8px; border-radius: 6px; white-space: nowrap; }
+.topnav a:not(.mark) { display: flex; align-items: center; height: 57px; padding: 0 16px; border: 0; color: var(--fg); font: 500 15px/1 var(--body); }
+.topnav a:not(.mark):hover, .topnav a[aria-current="page"] { background: rgba(51,55,59,.5); color: var(--fg); }
+.topnav .lang { margin-left: 8px; border-radius: 6px; }
+@media (max-width: 760px) {
+  .topnav .wrap { flex-wrap: wrap; }
+  .topnav .sp { flex-basis: 100%; height: 0; }
+  .topnav a:not(.mark) { height: 44px; padding: 0 12px; font-size: 14px; }
+  .topnav .mark { height: 50px; } .topnav .mark .logo { height: 13px; }
+}
+.unoff { background: linear-gradient(90deg, #6e36e7, #cb49ce); }
+body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159,4,220,0) 300px); }
+
+/* Profil */
+.profile .cover { background: linear-gradient(90deg, #6e36e7, #cb49ce); box-shadow: inset 0 -5px 5px -5px rgb(0 0 0 / 50%); }
+.profile .who { flex-direction: column; align-items: center; text-align: center; margin-top: -124px; gap: 10px; }
+.ava { width: 170px !important; height: 170px !important; border: 10px solid var(--bg) !important; }
+.pname { font: 600 24px/1.2 var(--body) !important; text-transform: none !important; padding: 0 !important; }
+.loaded [data-view=explorer] > header { justify-items: center; text-align: center; }
+.loaded .profile { justify-self: stretch; }
+html { background: var(--bg); }
+body { background-repeat: no-repeat; min-height: 100vh; }
+.loaded .counter { justify-content: center; }
+.loaded .hist { text-align: left; width: 100%; max-width: 1242px; }
+@media (max-width: 560px) { .profile .who { margin-top: -66px; } .ava { width: 116px !important; height: 116px !important; } }
+
+/* Onglets */
+.seg.tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 32px; border-bottom: 1px solid var(--line); margin: 0 0 24px; padding: 0 16px; }
+.seg.tabs button { background: none !important; border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--muted); font: 500 16px/1 var(--body); padding: 14px 0 12px; }
+.seg.tabs button:hover { color: var(--fg); }
+.seg.tabs button[aria-pressed="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+.dexbar .seg.tabs { flex-basis: 100%; justify-content: flex-start; padding: 0; margin: 0 0 8px; }
+
+/* Colonne de filtres */
+.layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 32px; align-items: start; max-width: 1242px; }
+.side { position: sticky; top: 73px; display: grid; gap: 10px; }
+.side h4 { margin: 8px 0 0; font: 600 16px/1.2 var(--body); }
+.seg.checks { flex-direction: column; gap: 2px; }
+.seg.checks button { display: flex; align-items: center; gap: 12px; background: none !important; border: 0; padding: 6px 0; font: 500 15px/1.2 var(--body); color: var(--fg); text-align: left; }
+.seg.checks button::before { content: ""; flex: none; width: 24px; height: 24px; border-radius: 6px; background: #2e3033 center/14px no-repeat; border: 1px solid var(--line); box-sizing: border-box; }
+.seg.checks button[aria-pressed="true"]::before { background-color: var(--accent); border-color: var(--accent); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.seg.checks button:hover::before { border-color: var(--accent); }
+.sels { display: grid; gap: 8px; }
+.sels select, .dexbar select { width: 100%; height: 40px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); padding: 0 10px; }
+.dexbar select { width: auto; }
+.sels .dl { border-radius: 6px; text-align: center; }
+.sels .count { margin: 4px 0 0; }
+main#emptyWrap { padding-block: 0; }
+#emptyWrap .empty:not([hidden]) { padding-bottom: 48px; }
+.gridwrap { padding-bottom: 64px; min-width: 0; }
+.layout .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important; }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .side { position: static; grid-template-columns: 1fr; }
+  .seg.checks { flex-direction: row; flex-wrap: wrap; gap: 4px 16px; }
+  .layout .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 480px) { .layout .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+
+/* Cartes */
+.card { padding: 0 !important; overflow: hidden; }
+.card .frame { margin: 12px 12px 0; }
+.card .meta { padding: 16px 8px 12px; text-align: center; justify-items: center; }
+.card .meta strong { font: 500 16px/1.25 var(--body); }
+.card .meta span { font-family: var(--body); font-size: 14px; justify-content: center; }
+.card .pill { background: var(--line); border: 0; border-radius: 6px; color: var(--fg); padding: 4px 8px; }
+.go, .copy { background: radial-gradient(circle, #7a03a9 0, var(--accent) 50%); border-radius: 6px; }
+.lookup input { height: 55px; border-radius: 6px; }
+.lookup input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.stat, .hist, .quick, .box, .dl, .nav button, .seg button, .close { border-radius: 6px; }
+dialog { border-radius: 6px; }
 </style><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><div class="unoff" role="note" data-en-html="An <b>unofficial</b> archive made by a former player. Not affiliated with Rules Labs. No wallet connection, no signature.">Archive <b>non officielle</b>, faite par un ancien joueur. Sans lien avec Rules Labs. Aucune connexion de wallet, aucune signature.</div>
-<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue">RULES<i>/</i>RESCUE</a><span class="badge" data-en="Unofficial">Non officiel</span><span class="sp"></span><a href="#explorer" data-en="Collection">Collection</a><a href="#dex">Dex</a><a href="#tuto" data-en="Guide">Tuto</a><a href="#outil" data-en="Tool">Outil</a><button type="button" class="lang" id="lang" aria-label="Langue / Language">EN</button></div></nav>
+<nav class="topnav" aria-label="Sections"><div class="wrap"><a class="mark" href="#explorer" aria-label="Accueil Rules Rescue"><svg class="logo" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1304.6 85" fill="currentColor"><path d="M76.7,85h61.4a21.31749,21.31749,0,0,0,21.3-21.3V.1H138.7V64.3H71V52.9H87.7a21.78843,21.78843,0,0,0,21.6-21.7V26.5A26.37485,26.37485,0,0,0,82.9.1H22.2A22.2137,22.2137,0,0,0,0,22.3V85H20.7V20.7h68V32.1H72A21.68029,21.68029,0,0,0,50.3,53.8v4.7A26.46024,26.46024,0,0,0,76.7,85Z"/><path d="M191.2,85H271V64.4H190.5V.1H169.8V63.6A21.55394,21.55394,0,0,0,191.2,85Z"/><path d="M300.8,20.8h93.9V.1H306.5a26.37483,26.37483,0,0,0-26.4,26.4v5.7h20.7V20.8Z"/><rect x="310.39999" y="32.2" width="82.19998" height="20.6"/><path d="M306.5,85h88.2V64.4H300.8V52.9H280.1v5.7A26.50353,26.50353,0,0,0,306.5,85Z"/><path d="M522.6,58.5a26.37484,26.37484,0,0,0-26.4-26.4H424.1V20.7h94.4V0H429.8a26.44587,26.44587,0,0,0-18.7,45.1,26.15551,26.15551,0,0,0,18.7,7.7h72.1V64.2H407.5V84.9h88.6A26.45994,26.45994,0,0,0,522.6,58.5Z"/><g fill="#9F04DC"><g transform="translate(567.6 0)"><path fill-rule="evenodd" d="M0,85V22.3A22.2,22.2,0,0,1,22.2,.1H82.9a26.4,26.4,0,0,1,26.4,26.4v4.7A21.7,21.7,0,0,1,87.6,52.9H79.5L109.3,85H81.2L51.4,52.9H20.7V85ZM20.7,20.7h68V32.2h-68Z"/></g><g transform="translate(406.8 0)"><path d="M300.8,20.8h93.9V.1H306.5a26.37483,26.37483,0,0,0-26.4,26.4v5.7h20.7V20.8Z"/><rect x="310.39999" y="32.2" width="82.19998" height="20.6"/><path d="M306.5,85h88.2V64.4H300.8V52.9H280.1v5.7A26.50353,26.50353,0,0,0,306.5,85Z"/></g><g transform="translate(408.1 0)"><path d="M522.6,58.5a26.37484,26.37484,0,0,0-26.4-26.4H424.1V20.7h94.4V0H429.8a26.44587,26.44587,0,0,0-18.7,45.1,26.15551,26.15551,0,0,0,18.7,7.7h72.1V64.2H407.5V84.9h88.6A26.45994,26.45994,0,0,0,522.6,58.5Z"/></g><g transform="translate(660.6 0)"><path d="M300.8,20.8h93.9V.1H306.5a26.37483,26.37483,0,0,0-26.4,26.4v5.7h20.7V20.8Z"/><rect x="280.1" y="32" width="20.7" height="21.1"/><path d="M306.5,85h88.2V64.4H300.8V52.9H280.1v5.7A26.50353,26.50353,0,0,0,306.5,85Z"/></g><g transform="translate(1065.3 0)"><path d="M0,.1H20.7V64.3H94V.1h20.7V58.6A26.4,26.4,0,0,1,88.3,85H26.4A26.4,26.4,0,0,1,0,58.6Z"/></g><g transform="translate(909.9 0)"><path d="M300.8,20.8h93.9V.1H306.5a26.37483,26.37483,0,0,0-26.4,26.4v5.7h20.7V20.8Z"/><rect x="310.39999" y="32.2" width="82.19998" height="20.6"/><path d="M306.5,85h88.2V64.4H300.8V52.9H280.1v5.7A26.50353,26.50353,0,0,0,306.5,85Z"/></g></g></svg></a><span class="badge" data-en="Unofficial">Non officiel</span><span class="sp"></span><a href="#explorer" data-en="Collection">Collection</a><a href="#dex">Dex</a><a href="#tuto" data-en="Guide">Tuto</a><a href="#outil" data-en="Tool">Outil</a><button type="button" class="lang" id="lang" aria-label="Langue / Language">EN</button></div></nav>
 
 <section class="view" data-view="explorer">
 <header class="wrap">
@@ -209,15 +287,17 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
   <details class="hist" id="hist" hidden><summary data-en="Account history">Historique du compte</summary><div id="histBody"></div></details>
 </header>
 
-<div class="bar" id="bar" hidden>
-  <div class="wrap">
-    <div class="seg" id="kind" role="group" aria-label="Type">
+<div class="coll" id="bar" hidden>
+  <div class="seg tabs" id="kind" role="group" aria-label="Type">
       <button type="button" data-v="all" aria-pressed="true" data-en="All">Tout</button>
       <button type="button" data-v="card" aria-pressed="false" data-en="Cards">Cartes</button>
       <button type="button" data-v="pack" aria-pressed="false">Packs</button>
       <button type="button" data-v="low" aria-pressed="false" title="N° de série bas (≤ 20 holo/platinium, ≤ 100 common/halloween)" data-en="Low serials">N° bas</button>
     </div>
-    <div class="seg" id="rar" role="group" aria-label="Rareté">
+  <div class="wrap layout">
+  <aside class="side" aria-label="Filtres">
+    <h4 data-en="Rarities">Raretés</h4>
+    <div class="seg checks" id="rar" role="group" aria-label="Rareté">
       <button type="button" data-v="all" aria-pressed="true" data-en="All">Toutes</button>
       <button type="button" data-v="H" aria-pressed="false">Holo</button>
       <button type="button" data-v="P" aria-pressed="false">Platinium</button>
@@ -225,18 +305,21 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
       <button type="button" data-v="L" aria-pressed="false" hidden>Live</button>
       <button type="button" data-v="C" aria-pressed="false">Common</button>
     </div>
+    <h4 data-en="Filters">Filtres</h4>
+    <div class="sels">
     <select id="season" aria-label="Saison"><option value="all" data-en="Seasons 1 + 2">Saisons 1 + 2</option><option value="1" data-en="Season 1">Saison 1</option><option value="2" data-en="Season 2">Saison 2</option></select>
     <select id="artist" aria-label="Artiste"><option value="all">Tous les artistes</option></select>
     <select id="sort" aria-label="Tri"><option value="rar" data-en="Sort: rarity">Tri : rareté</option><option value="artist" data-en="Sort: name A → Z">Tri : nom A → Z</option><option value="artistZ" data-en="Sort: name Z → A">Tri : nom Z → A</option><option value="serial" data-en="Sort: serial ↑">Tri : n° de série ↑</option><option value="serialD" data-en="Sort: serial ↓">Tri : n° de série ↓</option><option value="season" data-en="Sort: season">Tri : saison</option><option value="qty" data-en="Sort: copies">Tri : exemplaires</option><option value="price" data-en="Sort: last sale price">Tri : dernier prix</option></select>
     <a class="dl" id="dl" href="#">cartes.json</a>
     <div class="count" id="count"></div>
+    </div>
+  </aside>
+  <div class="gridwrap">
+    <div class="grid" id="grid"></div>
+  </div>
   </div>
 </div>
-
-<main class="wrap">
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" hidden></div>
-</main>
+<main class="wrap" id="emptyWrap"><div class="empty" id="empty" hidden></div></main>
 
 <footer class="wrap" data-en="Data read on Starknet through the Voyager explorer and a public RPC (cards contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Unofficial site, not affiliated with Rules Labs. HD images and animations: copies of their IPFS files (links stored in the contract); they belong to their artists.">Données lues sur Starknet via l'explorateur Voyager et un RPC public (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</footer>
 </section>
@@ -245,7 +328,7 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
   <header><div class="brand" data-en="Every Rules card · Starknet">Toutes les cartes Rules · Starknet</div><h2 class="doc-h">Dex</h2>
   <p class="sub" id="dexInfo">Chargement…</p></header>
   <div class="dexbar">
-    <div class="seg" id="dexOwn" role="group" aria-label="Possession"><button type="button" data-v="all" aria-pressed="true" data-en="All">Toutes</button><button type="button" data-v="own" aria-pressed="false" data-en="Owned">Possédées</button><button type="button" data-v="miss" aria-pressed="false" data-en="Missing">Manquantes</button></div>
+    <div class="seg tabs" id="dexOwn" role="group" aria-label="Possession"><button type="button" data-v="all" aria-pressed="true" data-en="All">Toutes</button><button type="button" data-v="own" aria-pressed="false" data-en="Owned">Possédées</button><button type="button" data-v="miss" aria-pressed="false" data-en="Missing">Manquantes</button></div>
     <select id="dexRar" aria-label="Rareté"><option value="all" data-en="All rarities">Toutes raretés</option><option value="C">Common</option><option value="H">Holographic</option><option value="P">Platinium</option><option value="W">Halloween</option><option value="L" hidden>Live</option></select>
     <select id="dexSeason" aria-label="Saison"><option value="all" data-en="Seasons 1 + 2">Saisons 1 + 2</option><option value="1" data-en="Season 1">Saison 1</option><option value="2" data-en="Season 2">Saison 2</option></select>
     <select id="dexSort" aria-label="Tri"><option value="artist" data-en="Sort: artist">Tri : artiste</option><option value="rar" data-en="Sort: rarity">Tri : rareté</option><option value="season" data-en="Sort: season">Tri : saison</option><option value="owned" data-en="Sort: owned first">Tri : possédées d'abord</option><option value="supply" data-en="Sort: supply (rarest first)">Tri : tirage (plus rares d'abord)</option><option value="price" data-en="Sort: last sale price">Tri : dernier prix</option><option value="sales" data-en="Sort: most traded">Tri : plus échangées</option></select>
