@@ -326,6 +326,7 @@ dialog { border-radius: 6px; }
   .topnav .mark { height: 52px; } .topnav .mark .logo { height: 15px; }
   .topnav .wrap > a:not(.mark) { position: fixed; bottom: 0; z-index: 20; width: 25%; height: calc(60px + env(safe-area-inset-bottom, 0px)); padding: 6px 0 env(safe-area-inset-bottom, 0px); margin: 0 !important; flex-direction: column; justify-content: center; gap: 3px; background: var(--surface); border-top: 1px solid var(--line); font: 500 12px/1 var(--body); color: var(--muted); }
   .topnav .wrap > a[href="#explorer"] { left: 0; } .topnav .wrap > a[href="#dex"] { left: 25%; } .topnav .wrap > a[href="#tuto"] { left: 50%; } .topnav .wrap > a[href="#outil"] { left: 75%; }
+  body.admin .topnav .wrap > a:not(.mark) { width: 20%; } body.admin .topnav .wrap > a[href="#dex"] { left: 20%; } body.admin .topnav .wrap > a[href="#tuto"] { left: 40%; } body.admin .topnav .wrap > a[href="#outil"] { left: 60%; } body.admin .topnav .wrap > a[href="#moi"] { left: 80%; }
   .topnav .wrap > a:not(.mark):hover { background: var(--surface); }
   .topnav .wrap > a[aria-current="page"] { background: var(--surface); color: var(--fg); font-weight: 600; }
   .topnav .wrap > a[aria-current="page"] .ni { color: var(--accent); }

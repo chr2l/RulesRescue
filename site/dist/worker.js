@@ -204,6 +204,20 @@ async function history(addr) {
   return s;
 }
 
+// Admin d'elie.place : le portail pose le cookie de session elie_s sur .elie.place.
+// On demande au portail qui est connecté (seul ce cookie est transmis). Rôle admin + double facteur exigés.
+const ME = { a: "0xADMIN_ADDR", n: "ADMIN_NAME" };
+async function elieAdmin(req) {
+  const m = /(?:^|;\s*)elie_s=([^;\s]+)/.exec(req.headers.get("cookie") || "");
+  if (!m) return false;
+  try {
+    const r = await fetch("https://elie.place/api/moi", { headers: { cookie: "elie_s=" + m[1], accept: "application/json" }, signal: AbortSignal.timeout(3000) });
+    if (!r.ok) return false;
+    const me = await r.json();
+    return me.role === "admin" && me.status === "active" && me.totp === true;
+  } catch (e) { return false; }
+}
+
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
 export default {
@@ -278,10 +292,14 @@ export default {
       // Page profil privée : protégée en amont par Cloudflare Access (application rules.elie.place/moi).
       if (u.pathname === "/moi") {
         if (!req.headers.get("cf-access-authenticated-user-email")) return new Response("Accès réservé.", { status: 403 });
-        const html = (await env.SITE.get("html") || "").replace("</head>", '<script>window.RR_ME="0xADMIN_ADDR";</script></head>');
+        const html = (await env.SITE.get("html") || "").replace("</head>", `<script>window.RR_ME="${ME.a}";window.RR_ADMIN=${JSON.stringify(ME)};</script></head>`);
         return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
       }
-      if (u.pathname === "/" || u.pathname === "/index.html") return new Response(await env.SITE.get("html") || "Site en cours de mise à jour.", { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" } });
+      if (u.pathname === "/" || u.pathname === "/index.html") {
+        let html = await env.SITE.get("html") || "Site en cours de mise à jour.";
+        if (await elieAdmin(req)) html = html.replace("</head>", `<script>window.RR_ADMIN=${JSON.stringify(ME)};</script></head>`);
+        return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-cache", "vary": "cookie" } });
+      }
       return new Response("Not found", { status: 404 });
     } catch (e) {
       return json({ error: String(e.message || e) }, 502);
