@@ -13,6 +13,7 @@
 - Marchés : Cairo 1 `0x01fea6…9937` (FulfillOrder) et ancien Cairo 0 `0x063a4b…be8` (OfferCreated/OfferAccepted, adresse tirée de l'historique de ruleslabs/sdk-core). Seuils n° bas / tirages / coefficients C-Score : `SCARCE` dans app.html (sdk-core).
 - Langues : FR par défaut, EN via `?lang=en` (attributs `data-en*` dans app.html, guide anglais dans `src/guide.en.html`).
 - Médias HD : bucket R2 `rules-assets` servi sur media.elie.place (Access bypass) ; correspondance par nom de carte dans `MAN`/`DUP` (app.html), Pinata en secours.
+- Admin d'elie.place : sur `/`, le worker transmet le seul cookie `elie_s` (posé sur .elie.place par le portail) à `https://elie.place/api/moi` ; si rôle admin + double facteur, il injecte `window.RR_ADMIN` (adresse + « ADMIN_NAME »). Sans ça : pas de possession dans le Dex, pas de section « ADMIN_NAME » (`#moi`) dans la barre.
 - `/moi` : profil privé (collection Ready), protégé par l'app Cloudflare Access « rules.elie.place/moi » ; le worker refuse sans en-tête Access.
 - Ne jamais nommer une fonction globale `history` (écrase window.history).
 - À faire : parcours Braavos non testé.
