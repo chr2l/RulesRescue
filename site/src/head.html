@@ -393,4 +393,12 @@ dialog { border-radius: 6px; }
   .sheet { padding: 56px 16px 32px; }
   .close { position: fixed; top: 8px; right: 8px; width: 44px; height: 44px; z-index: 3; }
 }
+
+/* Cadre d'infos : commence sous l'image (son bord haut est caché derrière la carte). */
+.card { overflow: visible !important; background: none !important; border: 0 !important; border-radius: 0 !important; }
+.card > .frame { z-index: 1; }
+.card > .meta { background: var(--surface); border: 1px solid var(--line); border-radius: 0 0 6px 6px; margin-top: -26px; padding-top: 34px; }
+.card > .cbadges + .meta { margin-top: -34px; }
+.card:hover > .meta { border-color: #4a4f54; }
+@media (max-width: 760px) { .card > .meta { padding-top: 32px; } }
 </style><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
