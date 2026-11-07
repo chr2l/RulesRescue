@@ -206,7 +206,8 @@ async function history(addr) {
 
 // Admin d'elie.place : le portail pose le cookie de session elie_s sur .elie.place.
 // On demande au portail qui est connecté (seul ce cookie est transmis). Rôle admin + double facteur exigés.
-const ME = { a: "0xADMIN_ADDR", n: "ADMIN_NAME" };
+// L'adresse et le pseudo de l'admin sont des variables du Worker (ADMIN_ADDR, ADMIN_NAME), pas dans le code.
+const adminOf = env => /^0x[0-9a-f]{1,64}$/i.test(env.ADMIN_ADDR || "") ? { a: env.ADMIN_ADDR, n: String(env.ADMIN_NAME || "Admin") } : null;
 async function elieAdmin(req) {
   const m = /(?:^|;\s*)elie_s=([^;\s]+)/.exec(req.headers.get("cookie") || "");
   if (!m) return false;
@@ -291,13 +292,15 @@ export default {
       if (u.pathname === "/robots.txt") return new Response("User-agent: *\nAllow: /\n", { headers: { "content-type": "text/plain" } });
       // Page profil privée : protégée en amont par Cloudflare Access (application rules.elie.place/moi).
       if (u.pathname === "/moi") {
-        if (!req.headers.get("cf-access-authenticated-user-email")) return new Response("Accès réservé.", { status: 403 });
-        const html = (await env.SITE.get("html") || "").replace("</head>", `<script>window.RR_ME="${ME.a}";window.RR_ADMIN=${JSON.stringify(ME)};</script></head>`);
+        const ME = adminOf(env);
+        if (!ME || !req.headers.get("cf-access-authenticated-user-email")) return new Response("Accès réservé.", { status: 403 });
+        const html = (await env.SITE.get("html") || "").replace("</head>", `<script>window.RR_ME=${JSON.stringify(ME.a)};window.RR_ADMIN=${JSON.stringify(ME).replace(/</g, "\\u003c")};</script></head>`);
         return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
       }
       if (u.pathname === "/" || u.pathname === "/index.html") {
         let html = await env.SITE.get("html") || "Site en cours de mise à jour.";
-        if (await elieAdmin(req)) html = html.replace("</head>", `<script>window.RR_ADMIN=${JSON.stringify(ME)};</script></head>`);
+        const ME = adminOf(env);
+        if (ME && await elieAdmin(req)) html = html.replace("</head>", `<script>window.RR_ADMIN=${JSON.stringify(ME).replace(/</g, "\\u003c")};</script></head>`);
         return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-cache", "vary": "cookie" } });
       }
       return new Response("Not found", { status: 404 });
