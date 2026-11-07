@@ -32,8 +32,6 @@ python script/rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xDESTI
 
 ## Déploiement
 
-1. `python site/build.py` (assemble `site/dist/index.html`, copie le Worker dans `site/dist/worker.js`).
-2. Le Worker Cloudflare `rules-rescue` (domaine `rules.elie.place`, application Access en bypass = accès sans login) lit la page et le script dans le KV `rules-rescue-site`.
-3. Pour mettre à jour la page et le script : ouvrir `https://rules.elie.place/admin?t=<ADMIN_TOKEN>#<base64 de {"html":…, "script":…}>` (le jeton est un secret du Worker, jamais committé). Le code du Worker se redéploie via l'API Cloudflare.
+Automatique : chaque commit sur `main` est construit (`python3 site/build.py`) et publié (`npx wrangler deploy`, voir `wrangler.jsonc`) par Cloudflare Workers Builds sur `rules.elie.place`.
 
 Site non officiel, sans lien avec Rules Labs. Les illustrations des cartes appartiennent à leurs artistes ; le site ne les héberge pas, il les relaie depuis l'explorateur Voyager.

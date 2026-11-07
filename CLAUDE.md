@@ -8,8 +8,8 @@
 - Ne jamais committer de seed, clé privée, ni les images des cartes.
 
 ## Publication & état (30/10/2026)
-- Le HTML vit dans le KV `rules-rescue-site` (id df3fe9d9f39849b18b314f741a41b420), clés `html` et `script`. Publier : `python site/build.py`, puis écrire `site/dist/index.html` dans la clé `html` (API Cloudflare KV ou page `/admin?t=<ADMIN_TOKEN>#<base64 JSON {html,script}>`). Ne jamais committer le jeton.
-- Worker : routes `/api/cards`, `/api/meta`, `/img/{id}`, `/api/history` (stats d'un compte), `/api/market` (ventes agrégées des deux marchés), `/api/token?id=` (historique d'un exemplaire), `/api/dex`, `/api/cdx` (Wayback), `/admin`, `/admin/put`.
+- Publication automatique (depuis le 07/11/2026) : Workers Builds reconstruit et publie à chaque commit sur `main` (`python3 site/build.py` puis `npx wrangler deploy`, réglages dans `wrangler.jsonc`). La page et le script sont des fichiers statiques du Worker (`site/dist/public/`, binding ASSETS) ; le KV `rules-rescue-site` (binding SITE) ne garde que les données du Dex (clé `dex`). `site/dist/` n'est plus dans git.
+- Worker : routes `/api/cards`, `/api/meta`, `/img/{id}`, `/api/history` (stats d'un compte), `/api/market` (ventes agrégées des deux marchés), `/api/token?id=` (historique d'un exemplaire), `/api/dex`, `/api/cdx` (Wayback). Plus de `/admin` : tout passe par GitHub.
 - Marchés : Cairo 1 `0x01fea6…9937` (FulfillOrder) et ancien Cairo 0 `0x063a4b…be8` (OfferCreated/OfferAccepted, adresse tirée de l'historique de ruleslabs/sdk-core). Seuils n° bas / tirages / coefficients C-Score : `SCARCE` dans app.html (sdk-core).
 - Langues : FR par défaut, EN via `?lang=en` (attributs `data-en*` dans app.html, guide anglais dans `src/guide.en.html`).
 - Médias HD : bucket R2 `rules-assets` servi sur media.elie.place (Access bypass) ; correspondance par nom de carte dans `MAN`/`DUP` (app.html), Pinata en secours.
