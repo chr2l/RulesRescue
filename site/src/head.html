@@ -401,4 +401,29 @@ dialog { border-radius: 6px; }
 .card > .cbadges + .meta { margin-top: -34px; }
 .card:hover > .meta { border-color: #4a4f54; }
 @media (max-width: 760px) { .card > .meta { padding-top: 32px; } }
+
+/* Page Informations / mentions légales : sommaire collant à gauche, comme un plan de document. */
+.legal { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 56px; align-items: start; padding-block: 40px 64px; }
+.legal .doc { padding: 0; min-width: 0; }
+.legal .doc h3.sub { scroll-margin-top: 80px; }
+.toc { position: sticky; top: 81px; max-height: calc(100vh - 105px); overflow: auto; }
+.toc summary { font: 700 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); list-style: none; padding: 0 0 12px 12px; pointer-events: none; }
+.toc summary::-webkit-details-marker { display: none; }
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc a { display: block; padding: 7px 12px; border-left: 2px solid var(--line); color: var(--muted); text-decoration: none; font: 500 14px/1.3 var(--body); }
+.toc a:hover { color: var(--fg); border-left-color: #4a4f54; }
+.toc a[aria-current="true"] { color: var(--fg); font-weight: 600; border-left-color: var(--accent); background: var(--accent-soft); }
+.foot .finfo { margin-top: 6px; }
+.foot .finfo a { color: var(--fg); }
+@media (max-width: 760px) {
+  .legal { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-block: 0 40px; }
+  .toc { top: 52px; z-index: 6; max-height: none; overflow: visible; margin: 0 -16px; padding: 0 16px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .toc summary { pointer-events: auto; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0; color: var(--fg); }
+  .toc summary::after { content: "▾"; font-size: 14px; color: var(--muted); }
+  .toc details[open] summary::after { content: "▴"; }
+  .toc ol { max-height: 60vh; overflow: auto; padding-bottom: 10px; }
+  .toc a { min-height: 44px; display: flex; align-items: center; }
+  .legal .doc { padding-top: 12px; }
+  .legal .doc h3.sub { scroll-margin-top: 110px; }
+}
 </style><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>

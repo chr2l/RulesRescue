@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 sim.json
 .env
+site/dist/
+node_modules/

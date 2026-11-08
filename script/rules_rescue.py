@@ -17,10 +17,10 @@ Installation :
     4) migrate --execute → envoie vraiment, après confirmation tapée à la main
 
 Exemples :
-    python rules_rescue.py find  --target 0x079be...
-    python rules_rescue.py check --target 0x079be...
-    python rules_rescue.py migrate --target 0x079be... --to 0xTON_NOUVEAU_WALLET --ids cartes.json
-    python rules_rescue.py migrate --target 0x079be... --to 0x... --ids cartes.json --execute
+    python rules_rescue.py find  --target 0xADRESSE_DES_CARTES
+    python rules_rescue.py check --target 0xADRESSE_DES_CARTES
+    python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xTON_NOUVEAU_WALLET --ids cartes.json
+    python rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0x... --ids cartes.json --execute
 
 Comptes Rules d'origine (jamais migrés) : bloqués, voir --rules-key et le guide.
 """
