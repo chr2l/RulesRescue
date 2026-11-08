@@ -484,6 +484,7 @@ function route() {
   document.querySelectorAll(".topnav a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + (me ? "moi" : v) && !a.classList.contains("mark") ? "page" : "false"));
   if (v === "infos") { const el = sec && $(LANG + "-" + sec); if (el) requestAnimationFrame(() => el.scrollIntoView()); else if (lastView !== "infos") scrollTo(0, 0); }
   lastView = v;
+  if (typeof fitHero === "function") requestAnimationFrame(fitHero);
 }
 // Sommaire de la page Informations : défilement doux vers la partie, et partie en cours surlignée.
 document.querySelectorAll(".toc a").forEach(a => a.addEventListener("click", e => {
@@ -504,7 +505,17 @@ function tocSpy() {
 }
 addEventListener("scroll", tocSpy, { passive: true }); addEventListener("hashchange", tocSpy);
 if (matchMedia("(max-width: 760px)").matches) document.querySelectorAll(".toc details").forEach(d => d.open = false);
-addEventListener("hashchange", route); route(); tocSpy();
+// Accueil : si la page dépasse de l'écran de quelques pixels seulement, on raccourcit la zone de recherche
+// pour que tout tienne (un défilement minuscule est laid). Un vrai dépassement (mobile, pied de page long) reste.
+function fitHero() {
+  const h = document.querySelector(".hero"); if (!h) return;
+  h.style.minHeight = "";
+  if (!h.offsetParent) return;
+  const over = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  if (over > 0 && over < 120) h.style.minHeight = Math.max(0, h.offsetHeight - over) + "px";
+}
+addEventListener("resize", fitHero);
+addEventListener("hashchange", route); route(); tocSpy(); fitHero();
 document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
   const el = $(b.dataset.copy);
   try { await navigator.clipboard.writeText(el.textContent); b.textContent = t("Copié", "Copied"); }
