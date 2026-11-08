@@ -5,7 +5,8 @@ Le site tient en **une page HTML** servie par **un Cloudflare Worker**. Pas de f
 ```
 navigateur ──► Worker (rules.elie.place) ──► API publique Voyager (transferts, métadonnées)
      │                    │                └► RPC Starknet public (événements du contrat, marchés)
-     │                    └► KV « site » : la page, le script, le Dex
+     │                    ├► fichiers statiques (ASSETS) : la page et le script
+     │                    └► KV « SITE » : le Dex
      └► médias HD : copie R2 des fichiers IPFS des cartes (Pinata en secours)
 ```
 
@@ -19,7 +20,7 @@ navigateur ──► Worker (rules.elie.place) ──► API publique Voyager (t
 | `site/src/infos.html` | Mentions légales et à propos, avec sommaire latéral. |
 | `site/src/worker.template.js` | Le Worker. |
 
-`python site/build.py` assemble `head + app (+ guide + infos)` dans `site/dist/index.html` et copie le Worker dans `site/dist/worker.js`.
+`python3 site/build.py` assemble `head + app (+ guide + infos)` dans `site/dist/public/index.html`, copie le script dans `site/dist/public/rules_rescue.py` et le Worker dans `site/dist/worker.js`.
 
 Langues : français par défaut, anglais avec `?lang=en` (attributs `data-en*` dans la page, sections `data-lang`).
 
@@ -27,7 +28,7 @@ Langues : français par défaut, anglais avec `?lang=en` (attributs `data-en*` d
 
 | Route | Rôle |
 |---|---|
-| `/` | La page (lue dans le KV, clé `html`). |
+| `/` | La page (fichier statique ; le Worker y ajoute l'état admin si besoin). |
 | `/api/cards?address=` | Cartes détenues par une adresse (Voyager). |
 | `/api/meta?ids=` | Métadonnées de cartes (liste d'identifiants). |
 | `/api/history?address=` | Statistiques et historique d'un compte (transferts, comptes d'origine, ventes). |
@@ -36,8 +37,7 @@ Langues : français par défaut, anglais avec `?lang=en` (attributs `data-en*` d
 | `/api/dex` | Les 168 modèles (KV, clé `dex`). |
 | `/api/cdx` | Anciennes pages de rules.art (Wayback Machine). |
 | `/img/{id}`, `/ipfs/{cid}` | Images relayées et mises en cache. |
-| `/rules_rescue.py` | Le script (KV, clé `script`). |
-| `/admin`, `/admin/put` | Mise à jour de la page et du script, protégée par le secret `ADMIN_TOKEN`. |
+| `/rules_rescue.py` | Le script (fichier statique, servi en téléchargement). |
 | `/moi` | Profil privé de l'administrateur, derrière Cloudflare Access. |
 
 Les réponses lentes (événements on-chain) sont gardées quelques minutes dans le cache Cloudflare.
@@ -46,15 +46,13 @@ Les réponses lentes (événements on-chain) sont gardées quelques minutes dans
 
 | Nom | Type | Rôle |
 |---|---|---|
-| `SITE` | KV | Page (`html`), script (`script`), Dex (`dex`). |
-| `ADMIN_TOKEN` | secret | Jeton de `/admin/put`. |
-| `ADMIN_ADDR`, `ADMIN_NAME` | variables | Adresse et pseudo affichés pour l'administrateur connecté. Sans elles, la partie admin est simplement désactivée. |
+| `ASSETS` | fichiers statiques | `site/dist/public/` : la page et le script. |
+| `SITE` | KV | Données du Dex (clé `dex`). |
+| `ADMIN_ADDR`, `ADMIN_NAME` | secrets | Adresse et pseudo affichés pour l'administrateur connecté. Sans elles, la partie admin est simplement désactivée. |
 
 ## Publication
 
-1. `python site/build.py`
-2. Écrire `site/dist/index.html` dans la clé `html` du KV (API Cloudflare, ou la page `/admin`).
-3. Si le Worker a changé : déployer `site/dist/worker.js` en gardant ses liaisons.
+Automatique avec Cloudflare Workers Builds : à chaque commit sur `main`, Cloudflare lance `python3 site/build.py` puis `npx wrangler deploy`. Toute la configuration est dans `wrangler.jsonc` (nom `rules-rescue`, domaine, KV, fichiers statiques). Les secrets ne sont pas dans le dépôt : ils se règlent dans Cloudflare (`npx wrangler secret put ADMIN_ADDR`).
 
 ## Le contrat des cartes
 

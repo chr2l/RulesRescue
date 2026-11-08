@@ -19,8 +19,8 @@ Vérifié par simulation sur mainnet (octobre 2026) : déploiement ≈ 0,03 STRK
 |---|---|
 | [`script/rules_rescue.py`](script/rules_rescue.py) | Outil à lancer **sur sa propre machine** : `find`, `check`, `migrate` (voir plus bas). |
 | [`site/src/`](site/src) | Sources du site : `head.html` (styles), `app.html` (page et JavaScript), `guide.html` / `guide.en.html` (guide FR / EN), `infos.html` (mentions légales), `worker.template.js` (Cloudflare Worker). |
-| [`site/build.py`](site/build.py) | Assemble les sources dans `site/dist/` (page unique + Worker). |
-| [`site/dist/`](site/dist) | Résultat du build, tel qu'il est publié. |
+| [`site/build.py`](site/build.py) | Assemble les sources dans `site/dist/` (page + script en fichiers statiques, Worker). Non versionné. |
+| [`wrangler.jsonc`](wrangler.jsonc) | Configuration du Worker `rules-rescue` pour Cloudflare Workers Builds. |
 | [`docs/architecture.md`](docs/architecture.md) | Fonctionnement du site, routes du Worker, sources de données, publication. |
 | [`docs/historique.md`](docs/historique.md) | Les étapes du projet, pull request par pull request. |
 | `CLAUDE.md`, `.claude/` | Notes et réglages pour les sessions Claude Code qui ont écrit une grande partie du code. |
@@ -42,13 +42,15 @@ python script/rules_rescue.py migrate --target 0xADRESSE_DES_CARTES --to 0xDESTI
 
 **Sécurité** : la seed est saisie masquée, n'est jamais écrite sur le disque ni envoyée sur le réseau. Lis le script avant de l'utiliser. Personne n'a besoin de ta seed pour t'aider.
 
-## Construire le site
+## Construire et publier le site
 
 ```bash
-python site/build.py   # écrit site/dist/index.html et site/dist/worker.js
+python3 site/build.py   # écrit site/dist/public/index.html, site/dist/public/rules_rescue.py et site/dist/worker.js
 ```
 
-Ouvre ensuite `site/dist/index.html` dans un navigateur : la page s'affiche, mais les données (`/api/...`) ne viennent qu'avec le Worker. Le détail est dans [docs/architecture.md](docs/architecture.md).
+Ouvre ensuite `site/dist/public/index.html` dans un navigateur : la page s'affiche, mais les données (`/api/...`) ne viennent qu'avec le Worker (`npx wrangler dev` pour le lancer en local).
+
+La publication est automatique : à chaque commit sur `main`, Cloudflare Workers Builds lance `python3 site/build.py` puis `npx wrangler deploy` (voir `wrangler.jsonc`). Le détail est dans [docs/architecture.md](docs/architecture.md).
 
 ## Contribuer
 
