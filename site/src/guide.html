@@ -116,15 +116,15 @@
   <div class="codehead"><span>Prompt à copier</span><button type="button" class="copy" data-copy="prompt">Copier le prompt</button></div>
   <pre class="code" id="prompt">Je veux récupérer mes cartes Rules (rules.art, fermé), des NFT ERC-1155 sur Starknet
 (contrat 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f).
-Guide et outil : https://rules.elie.place (onglets Guide et Outil).
+Guide et outil : https://rulesrescue.elie.place (onglets Guide et Outil).
 
 Mes infos (à compléter) :
-- Adresse qui détient les cartes (vue dans l'onglet Collection de rules.elie.place) : 0x...
+- Adresse qui détient les cartes (vue dans l'onglet Collection de rulesrescue.elie.place) : 0x...
 - Adresse de destination (mon wallet Ready ou Braavos actuel) : 0x...
 
 Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
-1. Télécharge https://rules.elie.place/rules_rescue.py et ma liste :
-   https://rules.elie.place/api/cards?address=&lt;ADRESSE_DES_CARTES&gt;&amp;format=ids (enregistre-la en cartes.json).
+1. Télécharge https://rulesrescue.elie.place/rules_rescue.py et ma liste :
+   https://rulesrescue.elie.place/api/cards?address=&lt;ADRESSE_DES_CARTES&gt;&amp;format=ids (enregistre-la en cartes.json).
 2. Installe Python et starknet-py. Sous Windows, si tu as l'erreur "LoadLibraryEx 126",
    utilise Docker (image python:3.12) ou WSL Ubuntu à la place.
 3. Lance `rules_rescue.py check --target &lt;ADRESSE_DES_CARTES&gt;` et dis-moi s'il y a assez de STRK
@@ -135,7 +135,7 @@ Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
    Ne me demande jamais ma seed dans la conversation et ne l'écris jamais dans un fichier.
 5. Montre-moi le résultat de la simulation. Si tout est OK, demande-moi ma confirmation explicite
    avant de relancer avec --execute, et laisse-moi taper OUI moi-même.
-6. À la fin, vérifie sur https://rules.elie.place/?address=&lt;ADRESSE_DE_DESTINATION&gt;
+6. À la fin, vérifie sur https://rulesrescue.elie.place/?address=&lt;ADRESSE_DE_DESTINATION&gt;
    que les cartes sont arrivées.</pre>
   <p class="hint">Une IA qui te demande ta seed dans la conversation ne respecte pas cette consigne : refuse.</p>
 

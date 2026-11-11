@@ -1,4 +1,4 @@
-// Rules Rescue — Cloudflare Worker (rules.elie.place)
+// Rules Rescue — Cloudflare Worker (rulesrescue.elie.place)
 // Sert la page, et lit les cartes Rules d'une adresse via l'API publique de Voyager.
 const CONTRACT = "0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36";
@@ -222,6 +222,8 @@ const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, header
 export default {
   async fetch(req, env, ctx) {
     const u = new URL(req.url);
+    // Ancienne adresse : renvoie vers la nouvelle (même chemin, mêmes paramètres).
+    if (u.hostname === "rules.elie.place") { u.hostname = "rulesrescue.elie.place"; return Response.redirect(u.toString(), 301); }
     try {
       if (u.pathname === "/api/cards") {
         const raw = u.searchParams.get("address") || "";
@@ -281,7 +283,7 @@ export default {
       }
       if (u.pathname === "/rules_rescue.py") return new Response((await env.ASSETS.fetch(new URL("/rules_rescue.py", req.url))).body, { headers: { "content-type": "text/x-python; charset=utf-8", "content-disposition": "attachment; filename=rules_rescue.py" } });
       if (u.pathname === "/robots.txt") return new Response("User-agent: *\nAllow: /\n", { headers: { "content-type": "text/plain" } });
-      // Page profil privée : protégée en amont par Cloudflare Access (application rules.elie.place/moi).
+      // Page profil privée : protégée en amont par Cloudflare Access (application rulesrescue.elie.place/moi).
       if (u.pathname === "/moi") {
         const ME = adminOf(env);
         if (!ME || !req.headers.get("cf-access-authenticated-user-email")) return new Response("Accès réservé.", { status: 403 });

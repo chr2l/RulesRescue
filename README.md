@@ -2,7 +2,7 @@
 
 Retrouver et récupérer ses cartes **Rules** (rules.art, NFT ERC-1155 sur Starknet) après la fermeture du site.
 
-- Site : **https://rules.elie.place** (collection d'une adresse, Dex des 168 modèles, guide pas à pas, outil)
+- Site : **https://rulesrescue.elie.place** (collection d'une adresse, Dex des 168 modèles, guide pas à pas, outil)
 - Projet **non officiel**, sans lien avec Rules Labs. Aucune connexion de wallet sur le site : il ne fait que lire la blockchain.
 
 *English: an unofficial tool to find and recover Rules trading cards (Starknet NFTs) after rules.art shut down. The site is available in English with `?lang=en`.*
@@ -60,4 +60,4 @@ Les tickets et pull requests sont les bienvenus. Les pull requests passées raco
 
 - Les illustrations des cartes appartiennent à leurs artistes ; le nom et la marque Rules à Rules Labs. Ce dépôt ne contient aucune image de carte.
 - Le style de l'interface reprend celui de [ruleslabs/interface](https://github.com/ruleslabs/interface) (licence ISC).
-- Mentions légales complètes : https://rules.elie.place/#infos
+- Mentions légales complètes : https://rulesrescue.elie.place/#infos

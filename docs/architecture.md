@@ -3,7 +3,7 @@
 Le site tient en **une page HTML** servie par **un Cloudflare Worker**. Pas de framework, pas de base de données : toutes les données viennent de la blockchain Starknet, lues à la demande.
 
 ```
-navigateur ──► Worker (rules.elie.place) ──► API publique Voyager (transferts, métadonnées)
+navigateur ──► Worker (rulesrescue.elie.place) ──► API publique Voyager (transferts, métadonnées)
      │                    │                └► RPC Starknet public (événements du contrat, marchés)
      │                    ├► fichiers statiques (ASSETS) : la page et le script
      │                    └► KV « SITE » : le Dex

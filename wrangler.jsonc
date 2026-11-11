@@ -1,11 +1,15 @@
-// Worker « rules-rescue » (rules.elie.place). Construit et publié par Workers Builds à chaque commit sur main :
+// Worker « rules-rescue » (rulesrescue.elie.place). Construit et publié par Workers Builds à chaque commit sur main :
 // build « python3 site/build.py », puis « npx wrangler deploy ».
 {
   "name": "rules-rescue",
   "main": "site/dist/worker.js",
   "compatibility_date": "2025-01-01",
   "workers_dev": false,
-  "routes": [{ "pattern": "rules.elie.place", "custom_domain": true }],
+  // rulesrescue.elie.place = adresse principale ; rules.elie.place (ancienne) redirige vers elle.
+  "routes": [
+    { "pattern": "rulesrescue.elie.place", "custom_domain": true },
+    { "pattern": "rules.elie.place", "custom_domain": true }
+  ],
   // Données du Dex (clé « dex »).
   "kv_namespaces": [{ "binding": "SITE", "id": "df3fe9d9f39849b18b314f741a41b420" }],
   // Page et script : le Worker passe d'abord (admin d'elie.place, /moi), puis lit les fichiers via ASSETS.

@@ -116,15 +116,15 @@
   <div class="codehead"><span>Prompt to copy</span><button type="button" class="copy" data-copy="prompt-en">Copy the prompt</button></div>
   <pre class="code" id="prompt-en">I want to recover my Rules cards (rules.art, shut down), ERC-1155 NFTs on Starknet
 (contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f).
-Guide and tool: https://rules.elie.place/?lang=en (Guide and Tool tabs).
+Guide and tool: https://rulesrescue.elie.place/?lang=en (Guide and Tool tabs).
 
 My details (to fill in):
-- Address holding the cards (seen in the Collection tab of rules.elie.place): 0x...
+- Address holding the cards (seen in the Collection tab of rulesrescue.elie.place): 0x...
 - Destination address (my current Ready or Braavos wallet): 0x...
 
 Do this on MY computer, step by step, explaining simply:
-1. Download https://rules.elie.place/rules_rescue.py and my list:
-   https://rules.elie.place/api/cards?address=&lt;CARDS_ADDRESS&gt;&amp;format=ids (save it as cartes.json).
+1. Download https://rulesrescue.elie.place/rules_rescue.py and my list:
+   https://rulesrescue.elie.place/api/cards?address=&lt;CARDS_ADDRESS&gt;&amp;format=ids (save it as cartes.json).
 2. Install Python and starknet-py. On Windows, if you get the "LoadLibraryEx 126" error,
    use Docker (python:3.12 image) or WSL Ubuntu instead.
 3. Run `rules_rescue.py check --target &lt;CARDS_ADDRESS&gt;` and tell me whether there is enough STRK
@@ -135,7 +135,7 @@ Do this on MY computer, step by step, explaining simply:
    Never ask me for my seed in the conversation and never write it to a file.
 5. Show me the simulation result. If all is fine, ask for my explicit confirmation
    before running again with --execute, and let me type OUI myself.
-6. At the end, check on https://rules.elie.place/?address=&lt;DESTINATION_ADDRESS&gt;
+6. At the end, check on https://rulesrescue.elie.place/?address=&lt;DESTINATION_ADDRESS&gt;
    that the cards arrived.</pre>
   <p class="hint">An AI that asks for your seed in the conversation is not following these instructions: refuse.</p>
 
