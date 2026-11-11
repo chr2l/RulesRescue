@@ -410,10 +410,6 @@ const hoverVideo = e => {
 };
 $("grid").addEventListener("pointerover", hoverVideo);
 $("dexGrid").addEventListener("pointerover", hoverVideo);
-$("grid").addEventListener("pointermove", e => {
-  const f = e.target.closest(".frame"); if (!f) return; const r = f.getBoundingClientRect();
-  f.style.setProperty("--px", ((e.clientX - r.left) / r.width * 100) + "%"); f.style.setProperty("--py", ((e.clientY - r.top) / r.height * 100) + "%");
-});
 
 // Historique d'un exemplaire : transferts lus sur Voyager + ventes sur les deux marchés Rules.
 async function provenance(d) {
