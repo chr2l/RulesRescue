@@ -194,7 +194,7 @@ async def main():
     if a.rules_key:
         sys.exit("Comptes Rules d'origine : bloqués. Leur contrat (classe 0x01c644…) refuse les transactions v3 "
                  "('Account: invalid tx version') et Starknet n'accepte plus les transactions v1 (testé le 30/10/2026). "
-                 "Même avec la clé exportée, les cartes ne peuvent plus en sortir. Voir le guide sur rules.elie.place.")
+                 "Même avec la clé exportée, les cartes ne peuvent plus en sortir. Voir le guide sur rulesrescue.elie.place.")
     else:
         mnemonic = ask_seed()
         print("Recherche du compte (calcul local, ~30 s)…")
