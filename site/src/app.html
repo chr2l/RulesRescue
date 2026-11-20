@@ -12,13 +12,13 @@
       <input id="addr" name="addr" type="text" inputmode="text" spellcheck="false" placeholder="0x0… ton wallet Argent/Ready/Braavos ou ton ancien compte Rules" data-en-ph="0x0… your Argent/Ready/Braavos wallet or your old Rules account" required>
       <button type="submit" class="go" data-en="Show cards">Voir les cartes</button>
     </div>
-    <div class="wconn"><span class="or" data-en="or">ou</span><button type="button" class="wbtn" id="wbtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2" fill="currentColor"/></svg><span data-en="Connect my wallet">Connecter mon wallet</span></button></div>
+    <div class="wconn"><span class="or" data-en="or">ou</span><button type="button" class="wbtn" id="wbtn"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16" cy="14.5" r="1.2" fill="currentColor"/></svg><span id="wlab" data-en="Connect my wallet">Connecter mon wallet</span></button></div>
     <div class="wpick" id="wpick" hidden></div>
     <p class="wmsg" id="wmsg" role="status"></p>
     <p class="hint"><span data-en="Read-only: no signature, no transaction, and never your seed. The page only reads the public blockchain.">Lecture seule : aucune signature, aucune transaction, et jamais ta seed. La page lit seulement la blockchain publique.</span> <br><button type="button" class="linkish" id="demo" data-en="Try a sample collection">Essayer avec une collection d'exemple</button></p>
   </form>
   </div>
-  <div class="profile" id="profile" hidden><div class="cover"></div><div class="who"><div class="ava" id="ava"></div><div><div class="pname" id="pname"></div><div class="wallet" id="pwallet"></div><button type="button" class="linkish other" id="other" data-en="Look up another address">Voir une autre adresse</button></div></div></div>
+  <div class="profile" id="profile" hidden><div class="cover"></div><div class="who"><div class="ava" id="ava"></div><div><div class="pname" id="pname"></div><div class="wallet" id="pwallet"></div><button type="button" class="linkish other" id="other" data-en="Look up another address">Voir une autre adresse</button> <button type="button" class="linkish other" id="wdis" hidden data-en="Disconnect wallet">Déconnecter le wallet</button></div></div></div>
   <div class="counter" id="stats"></div>
   <p class="status" id="status" role="status"></p>
   <details class="hist" id="hist" hidden><summary data-en="Account history">Historique du compte</summary><div id="histBody"></div></details>
@@ -210,7 +210,12 @@ function wallets() {
     const m = [], api = f["starknet:walletApi"];
     if (f["standard:connect"]) m.push(async () => { const r = await f["standard:connect"].connect({ silent: false }); return firstAddr(r && r.accounts) || firstAddr(w.accounts); });
     if (api && api.request) m.push(async () => firstAddr(await api.request({ type: "wallet_requestAccounts" })));
-    out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), m,
+    // Méthodes « silencieuses » : seulement si le site est déjà autorisé, sans ouvrir de fenêtre (retour sur la page).
+    const sl = [];
+    if (f["standard:connect"]) sl.push(async () => { const r = await f["standard:connect"].connect({ silent: true }); return firstAddr(r && r.accounts) || firstAddr(w.accounts); });
+    if (api && api.request) sl.push(async () => firstAddr(await api.request({ type: "wallet_requestAccounts", params: { silent_mode: true } })));
+    const dis = f["standard:disconnect"] ? () => f["standard:disconnect"].disconnect() : null;
+    out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), m, sl, dis,
       watch(cb) { const ev = f["standard:events"]; if (ev) try { ev.on("change", c => c && c.accounts && cb(firstAddr(c.accounts))); } catch (x) {} } });
   }
   const seen = new Set();
@@ -223,9 +228,14 @@ function wallets() {
     const m = [], cur = () => normAddr(String(w.selectedAddress || (w.account && w.account.address) || ""));
     if (typeof w.request === "function") m.push(async () => firstAddr(await w.request({ type: "wallet_requestAccounts" })) || cur());
     if (typeof w.enable === "function") m.push(async () => firstAddr(await w.enable({ starknetVersion: "v5" })) || cur());
+    const sl = [async () => {
+      if (typeof w.isPreauthorized === "function" && !(await w.isPreauthorized())) return null;
+      if (typeof w.request === "function") return firstAddr(await w.request({ type: "wallet_requestAccounts", params: { silent_mode: true } })) || cur();
+      return typeof w.isPreauthorized === "function" ? firstAddr(await w.enable()) || cur() : null;
+    }];
     const same = out.find(o => fam(o.key) === fam(key));
-    if (same) { same.m.push(...m); continue; } // même wallet déjà vu par la wallet standard : méthodes de secours
-    out.push({ key, name, icon: okIcon(w.icon), m, watch(cb) { if (typeof w.on === "function") try { w.on("accountsChanged", x => cb(firstAddr(x))); } catch (e) {} } });
+    if (same) { same.m.push(...m); same.sl.push(...sl); continue; } // même wallet déjà vu par la wallet standard : méthodes de secours
+    out.push({ key, name, icon: okIcon(w.icon), m, sl, dis: null, watch(cb) { if (typeof w.on === "function") try { w.on("accountsChanged", x => cb(firstAddr(x))); } catch (e) {} } });
   }
   return out.filter(w => w.m.length).filter((w, i, l) => !w.key || l.findIndex(o => o.key === w.key) === i);
 }
@@ -247,18 +257,57 @@ async function wConnect(w, i = 0) {
     clearTimeout(slow);
     if (!a) throw err || new Error("no account");
     msg.textContent = "";
-    showWallet(a, w.name);
-    w.watch(b => { if (b && MEA && b !== MEA.a) showWallet(b, w.name); });
+    wUse(w, a, true);
   } catch (e) {
     clearTimeout(slow); if (my !== wTry) return;
     msg.textContent = t("Connexion annulée ou refusée par le wallet. Tu peux aussi coller ton adresse ci-dessus.", "Connection cancelled or refused by the wallet. You can also paste your address above.");
   }
 }
-function showWallet(a, name) {
+// Wallet connecté : on retient seulement la famille du wallet (« argent », « braavos »…) dans le stockage local,
+// jamais l'adresse, pour le retrouver sans fenêtre au retour sur la page. « Déconnecter » efface tout.
+const WKEY = "rr_wallet";
+let wOn = null;
+function wUse(w, a, go) {
+  wOn = w;
+  try { localStorage.setItem(WKEY, fam(w.key)); } catch (e) {}
+  showWallet(a, w.name, go);
+  w.watch(b => { if (wOn === w && b && MEA && b !== MEA.a) showWallet(b, w.name, location.hash === "#moi"); });
+}
+function showWallet(a, name, go = true) {
   if (ADMIN && ADMIN.a === a) setMe({ a, n: ADMIN.n }); else setMe({ a, n: t("Mon wallet", "My wallet") + " · " + name, nav: t("Mon wallet", "My wallet") });
+  $("wlab").textContent = t("Mon wallet", "My wallet") + " · …" + a.slice(-4);
+  if (!go) { if (loaded === a) $("wdis").hidden = false; return; }
   if (location.hash === "#moi") route(); else location.hash = "#moi";
 }
+function wDisconnect() {
+  const w = wOn; wOn = null;
+  try { localStorage.removeItem(WKEY); } catch (e) {}
+  if (w && w.dis) try { w.dis(); } catch (e) {}
+  $("wdis").hidden = true; $("wlab").textContent = t("Connecter mon wallet", "Connect my wallet"); $("wmsg").textContent = "";
+  setMe(ADMIN ? { a: ADMIN.a, n: ADMIN.n } : null);
+  if (meMode || location.hash === "#moi") { meMode = false; document.body.classList.remove("me"); document.title = TITLE; location.hash = "#explorer"; showLookup(); }
+}
+$("wdis").onclick = wDisconnect;
+const within = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
+// Retour sur la page : si un wallet était connecté, on le retrouve sans rien ouvrir.
+async function wAuto() {
+  let k; try { k = localStorage.getItem(WKEY); } catch (e) {}
+  if (!k) return;
+  for (const wait of [0, 600, 1500]) {
+    if (wait) await new Promise(r => setTimeout(r, wait));
+    if (wOn) return;
+    const w = wallets().find(o => fam(o.key) === k);
+    if (!w) continue;
+    for (const f of w.sl) {
+      let a = null; try { a = await within(f(), 2500); } catch (e) {}
+      if (a) { if (!wOn) wUse(w, a, location.hash === "#moi"); return; }
+    }
+    try { localStorage.removeItem(WKEY); } catch (e) {} // plus autorisé par le wallet
+    return;
+  }
+}
 $("wbtn").onclick = async () => {
+  if (wOn && MEA) { location.hash = "#moi"; return; }
   const msg = $("wmsg"), pick = $("wpick");
   let ws = wallets();
   if (!ws.length) { // une extension peut s'annoncer un peu après le chargement
@@ -294,6 +343,7 @@ function profile(addr) {
   $("ava").textContent = h.slice(0, 2).toUpperCase();
   $("pname").textContent = addr.slice(0, 6) + "…" + addr.slice(-4);
   $("pwallet").textContent = addr;
+  $("wdis").hidden = !(wOn && MEA && MEA.a === addr);
   $("profile").hidden = false;
 }
 
@@ -739,6 +789,7 @@ document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", asyn
   catch (e) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = t("Sélectionné, fais Ctrl+C", "Selected, press Ctrl+C"); }
 }));
 const q = new URLSearchParams(location.search).get("address");
+wAuto();
 if (q && normAddr(q)) { lookAddr = normAddr(q); $("addr").value = lookAddr; if (!meMode) load(lookAddr); }
 
 // Mobile : filtres dans un panneau repliable.
