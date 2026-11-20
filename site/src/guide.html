@@ -1,42 +1,47 @@
 <section class="view wrap doc" data-view="tuto" data-lang="fr" hidden>
   <p class="hint" style="margin-bottom:18px">Commence par l'onglet <a href="#explorer">Collection</a> : colle une adresse et vois si des cartes y sont.</p>
-  <p class="eyebrow">Guide · ancien utilisateur Rules</p>
+  <p class="eyebrow">Tuto et outil · ancien utilisateur Rules</p>
   <h2 class="doc-h">Récupérer ses cartes Rules après la fermeture</h2>
-  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. Si ton wallet ne les montre pas, ce guide retrace la démarche qui a marché pour une collection de 250 cartes. Compte une à deux heures, et environ 5 STRK de frais réseau pour 250 cartes.</p>
+  <p class="lede">Rules (rules.art) a fermé, mais les cartes sont des NFT sur Starknet et elles y sont toujours. La marche à suivre dépend du wallet que tu as utilisé pendant la migration Rules, fin 2023 : choisis-le ci-dessous.</p>
 
-  <div class="quick">
-    <p class="eyebrow">En 30 secondes</p>
+  <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) et ta clé privée ne se collent sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te les demandera. Tout ce qui suit se fait en local sur ta machine.</div>
+
+  <h3 class="sub">Depuis quel wallet ?</h3>
+  <div class="seg tabs wsel" role="group" aria-label="Choix du wallet">
+    <button type="button" data-w="rules" aria-pressed="false">Depuis ton wallet Rules</button>
+    <button type="button" data-w="argent" aria-pressed="true">Depuis ton wallet Argent X (ex-Ready)</button>
+    <button type="button" data-w="braavos" aria-pressed="false">Depuis ton wallet Braavos</button>
+  </div>
+  <p class="hint">Tu ne sais plus ? Colle ton ancien compte Rules dans la <a href="#explorer">Collection</a> : l'historique indique combien de cartes ont été envoyées. Sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a>, le gros transfert de fin 2023 donne l'adresse de destination. Si aucune carte n'est partie, tu es dans le cas « wallet Rules ».</p>
+
+  <div class="wpanel" data-w="rules" hidden>
+    <p class="wtag wait">On cherche encore</p>
+    <p>Tu n'as jamais fait la migration : tes cartes sont restées sur ton <b>compte Rules d'origine</b>. Elles sont visibles dans la Collection, mais on n'a <b>pas encore de méthode qui marche</b> pour les sortir. Voici où on en est, honnêtement.</p>
+    <h3>Pourquoi c'est bloqué</h3>
+    <p>Le compte Rules d'origine n'accepte qu'un ancien format de transaction (la « v1 »). Starknet n'accepte plus que le format récent (la « v3 »). Ce compte ne peut donc plus rien envoyer : ni transfert, ni mise à jour, ni changement de clé. Testé le 30/10/2026.</p>
+    <h3>La piste qu'on creuse</h3>
     <ol class="plain">
-      <li>Colle ton adresse (Ready, Argent, Braavos, ou ton ancien compte Rules) dans la <a href="#explorer">Collection</a>. Il montre les cartes et l'historique du compte.</li>
-      <li>Trouve dans le tableau ci-dessous ta situation : elle te dit quoi faire.</li>
-      <li>Garde ta seed pour toi. Personne n'en a besoin pour t'aider.</li>
+      <li>Le compte ne peut plus <b>envoyer</b> de transaction, mais il peut encore <b>signer</b> un message, hors ligne.</li>
+      <li>La marketplace Rules exécute des ordres de vente signés hors ligne : le vendeur signe, l'acheteur paie les frais et la carte passe chez lui.</li>
+      <li>Le contrat des cartes laisse la marketplace transférer une carte sans autre autorisation.</li>
+      <li>L'idée : signer avec ta clé Rules un ordre « cette carte contre 0 STRK », puis l'exécuter depuis ton wallet récent avec une transaction normale. La carte sortirait de l'ancien compte sans que celui-ci ait à envoyer quoi que ce soit.</li>
     </ol>
+    <h3>Ce qui est vérifié, ce qui manque</h3>
+    <ul>
+      <li><b>Vérifié</b> dans le code public de Rules : chaque maillon ci-dessus. Le calcul de la signature donne le même résultat que le test officiel du dépôt Rules.</li>
+      <li><b>Vérifié</b> sur la blockchain le 05/11/2026 : le contrat des cartes pointe toujours vers la marketplace Rules (<code>0x01fea6…9937</code>).</li>
+      <li><b>Pas encore testé</b> : une vraie simulation avec un compte Rules d'origine qui a encore des cartes et sa <b>clé privée exportée</b> de rules.art. Tant que ce test n'est pas fait, on ne peut rien garantir.</li>
+      <li>Si tu ne t'es jamais servi de l'export de clé de rules.art (connexion par email seulement), cette piste ne marchera pas pour toi : seul Rules Labs, propriétaire des contrats, pourrait débloquer ces comptes.</li>
+    </ul>
+    <div class="box">
+      <h3>Tu as gardé ta clé exportée ?</h3>
+      <p>Tu peux nous aider à tester : la simulation se fait sur ton ordinateur, n'envoie rien et ne coûte rien. Écris via <a href="#infos/contact">Contact</a> en disant juste que tu as un compte Rules d'origine avec sa clé. <b>Ne mets jamais la clé dans le message</b> : tu la taperas toi-même dans le script, en local.</p>
+    </div>
   </div>
 
-  <h3 class="sub">Quelle est ta situation ?</h3>
-  <table class="mini sit">
-    <thead><tr><th>Pendant la migration Rules (fin 2023), tu avais…</th><th>Ce qu'il faut faire</th></tr></thead>
-    <tbody>
-      <tr><td><b>Argent X</b> (aujourd'hui Ready)</td><td>Tes cartes sont sur l'ancienne version de ton compte Argent, souvent invisible dans Ready. Suis les étapes 1 à 7 ci-dessous. Cas testé de bout en bout.</td></tr>
-      <tr><td><b>Braavos</b></td><td>Voir l'encadré « Si tu utilisais Braavos » juste après. Les cartes sont sur ton compte Braavos de l'époque.</td></tr>
-      <tr><td>Rien, tu n'as jamais fait la migration</td><td>Les cartes sont restées sur ton compte Rules d'origine. Elles sont visibles dans la Collection mais <b>bloquées</b> : ce type de compte ne peut plus envoyer de transactions (détails en bas de page).</td></tr>
-      <tr><td>Tu ne sais plus</td><td>Colle ton ancien compte Rules dans la Collection : l'historique indique combien de cartes ont été envoyées. Sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a>, le gros transfert de fin 2023 donne l'adresse de destination, puis colle-la à son tour dans la Collection.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="box" id="braavos">
-    <h3>Si tu utilisais Braavos</h3>
-    <ol class="plain">
-      <li>Retrouve l'adresse des cartes (étape 2 ci-dessous) et vérifie-la dans la Collection.</li>
-      <li>Installe l'extension Braavos dans un <b>profil de navigateur vierge</b> et restaure ta seed Braavos de l'époque. Braavos retrouve normalement tes anciens comptes et propose de les mettre à jour si besoin.</li>
-      <li>Si l'adresse des cartes apparaît dans Braavos : ajoute quelques STRK dessus, puis envoie les cartes depuis l'onglet NFT de Braavos. Si elles n'y sont pas affichées, passe par <a href="https://voyager.online/contract/0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f" target="_blank" rel="noopener">le contrat des cartes sur Voyager</a>, onglet « Write contract », Braavos connecté, fonction <code>batch_transfer_from</code>.</li>
-      <li>Si l'adresse n'apparaît pas : écris au support Braavos depuis l'application (menu Aide), avec l'adresse des cartes et ton adresse actuelle. Le message modèle de l'onglet <a href="#outil">Outil</a> s'adapte facilement.</li>
-    </ol>
-    <p class="hint">Le script de l'onglet Outil ne gère que les comptes Argent : Braavos calcule ses adresses autrement. Ce parcours Braavos n'a pas encore été testé de bout en bout. Si tu le fais, ton retour sur Discord aidera les suivants.</p>
-  </div>
-
-  <div class="warn"><b>Règle n°1.</b> Ta seed phrase (12 ou 24 mots) ne se colle sur aucun site, dans aucun formulaire de support, dans aucun chat. Personne de légitime ne te la demandera. Tout ce qui suit se fait en local sur ta machine.</div>
-
+  <div class="wpanel" data-w="argent">
+    <p class="wtag ok">Testé de bout en bout</p>
+    <p>C'est la méthode qui a marché : 252 cartes ramenées de l'ancienne version du compte Argent X vers Ready le 30/10/2026, pour environ 4,8 STRK de frais. Compte une à deux heures.</p>
   <h3 class="sub">Les étapes en détail (cas Argent X / Ready)</h3>
   <ol class="steps">
     <li>
@@ -69,7 +74,7 @@
     <li>
       <h3>Retrouver la bonne seed</h3>
       <p>La seed est celle de l'extension utilisée pendant la migration. Si tu utilises encore Ready sur le même ordinateur, c'est souvent la même. Sinon, cherche dans tes notes (Google Keep, Notes), tes captures d'écran, un papier, un gestionnaire de mots de passe. Une vraie seed fait 12 ou 24 mots de la <a href="https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt" target="_blank" rel="noopener">liste BIP39</a> et a une somme de contrôle valide.</p>
-      <p>Pour vérifier sans risque, restaure la seed dans un <b>profil de navigateur vierge</b> (jamais via « Mot de passe oublié » dans ton wallet actuel, qui l'effacerait) et compare les adresses. Le script de l'onglet <a href="#outil">Outil</a> fait ce test hors ligne, sur toutes les versions d'Argent connues.</p>
+      <p>Pour vérifier sans risque, restaure la seed dans un <b>profil de navigateur vierge</b> (jamais via « Mot de passe oublié » dans ton wallet actuel, qui l'effacerait) et compare les adresses. L'<a href="#outil">outil plus bas</a> fait ce test hors ligne, sur toutes les versions d'Argent connues.</p>
     </li>
     <li>
       <h3>Prévenir le support Ready</h3>
@@ -77,7 +82,7 @@
     </li>
     <li>
       <h3>Déployer le compte et rapatrier les cartes</h3>
-      <p>Si le support ne règle pas le problème, le script de l'onglet <a href="#outil">Outil</a> le fait en trois temps : <code>find</code> retrouve le compte à partir de la seed, <code>check</code> vérifie son état sur la chaîne, <code>migrate</code> simule le déploiement et le transfert, et n'envoie rien tant que tu n'ajoutes pas <code>--execute</code> et que tu ne tapes pas OUI.</p>
+      <p>Si le support ne règle pas le problème, l'<a href="#outil">outil plus bas</a> le fait en trois temps : <code>find</code> retrouve le compte à partir de la seed, <code>check</code> vérifie son état sur la chaîne, <code>migrate</code> simule le déploiement et le transfert, et n'envoie rien tant que tu n'ajoutes pas <code>--execute</code> et que tu ne tapes pas OUI.</p>
       <p>Il faut des <b>STRK</b> sur l'adresse des cartes pour payer les frais : environ 0,03 STRK pour le déploiement, puis 0,8 STRK par lot de 40 cartes, soit près de 5 STRK pour 250 cartes. La simulation donne le chiffre exact. Prévois une marge (8 à 10 STRK).</p>
       <p>Le plus simple pour en obtenir : acheter des STRK sur une plateforme (Binance, Kraken, Coinbase…) et faire un retrait sur le <b>réseau Starknet</b> directement vers l'adresse des cartes. Le compte n'a pas besoin d'être déployé pour recevoir des STRK. Argent Vault (Ethereum) ne sait pas envoyer vers Starknet.</p>
     </li>
@@ -91,32 +96,15 @@
       </ul>
     </li>
   </ol>
-  <h3 class="sub">Problèmes rencontrés et solutions</h3>
-  <table class="mini">
-    <thead><tr><th>Symptôme</th><th>Solution</th></tr></thead>
-    <tbody>
-      <tr><td>Windows : <code>pywintypes.error: (126, 'LoadLibraryEx', …)</code> au lancement du script</td><td>La bibliothèque crypto de <code>starknet-py</code> ne se charge pas sous Windows. Lance le script dans Docker ou WSL (voir l'onglet <a href="#outil">Outil</a>).</td></tr>
-      <tr><td>Ready n'affiche que ton adresse actuelle</td><td>Normal : l'adresse des cartes est l'ancienne version (v0.3.0) du même compte. Le script la retrouve à partir de ta seed.</td></tr>
-      <tr><td>Argent Vault : « We're not yet able to send from Ethereum to Starknet »</td><td>Passe par une plateforme d'échange et retire les STRK sur le réseau Starknet.</td></tr>
-      <tr><td>« Mot de passe oublié » proposé pour restaurer une seed</td><td>Ne l'utilise pas sur ton wallet actuel : ça l'efface. Restaure dans un profil de navigateur vierge.</td></tr>
-      <tr><td>Cartes restées sur le compte Rules d'origine (jamais migrées)</td><td>Bloquées, même avec la clé privée exportée : le contrat de compte Rules n'accepte que les anciennes transactions v1, que Starknet n'accepte plus (testé le 30/10/2026). Seule une évolution du réseau ou du contrat pourrait les débloquer.</td></tr>
-      <tr><td>Envoi refusé pour frais insuffisants</td><td>Ajoute des STRK sur l'adresse des cartes et relance : le script reprend là où il s'est arrêté.</td></tr>
-    </tbody>
-  </table>
-  <p class="note">Statut (30/10/2026) : démarche suivie de bout en bout sur une collection de 252 exemplaires. Migration réelle réussie le 30/10/2026 : déploiement + 7 lots, 252 exemplaires arrivés sur Ready, ≈ 4,8 STRK de frais.</p>
-</section>
 
-<section class="view wrap doc" data-view="outil" data-lang="fr" hidden>
-  <p class="eyebrow">Outil · trois façons de faire</p>
-  <h2 class="doc-h">Rapatrier tes cartes</h2>
-  <p class="lede">Choisis selon ton aisance. Dans tous les cas, ta seed se tape uniquement sur ta propre machine, dans une saisie masquée, jamais dans un chat ni sur un site.</p>
-
-  <h3 class="sub">A · Avec une IA qui agit sur ton ordinateur</h3>
+    <h3 class="sub" id="fr-outil">Outil · transférer tes cartes d'Argent X vers Ready</h3>
+    <p>Cet outil sert à une seule chose : faire passer tes cartes de l'<b>ancienne adresse Argent X</b> (version 0.3.0, celle de la migration Rules) vers ton <b>wallet Ready actuel</b>. Il ne marche ni pour Braavos ni pour un compte Rules d'origine. Choisis la façon de faire selon ton aisance. Dans tous les cas, ta seed se tape uniquement sur ta propre machine, dans une saisie masquée.</p>
+  <h3>A · Avec une IA qui agit sur ton ordinateur</h3>
   <p>Si tu utilises un assistant capable de lancer des commandes sur ton PC (Claude Code, Claude avec accès à l'ordinateur, Cursor…), copie ce texte et colle-le-lui. Il fera les vérifications et la simulation, puis te laissera valider l'envoi.</p>
   <div class="codehead"><span>Prompt à copier</span><button type="button" class="copy" data-copy="prompt">Copier le prompt</button></div>
   <pre class="code" id="prompt">Je veux récupérer mes cartes Rules (rules.art, fermé), des NFT ERC-1155 sur Starknet
 (contrat 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f).
-Guide et outil : https://rulesrescue.elie.place (onglets Guide et Outil).
+Guide et outil : https://rulesrescue.elie.place (onglet Tuto, partie Argent X).
 
 Mes infos (à compléter) :
 - Adresse qui détient les cartes (vue dans l'onglet Collection de rulesrescue.elie.place) : 0x...
@@ -139,7 +127,7 @@ Fais ceci sur MA machine, étape par étape, en m'expliquant simplement :
    que les cartes sont arrivées.</pre>
   <p class="hint">Une IA qui te demande ta seed dans la conversation ne respecte pas cette consigne : refuse.</p>
 
-  <h3 class="sub">B · Sans IA, avec le script</h3>
+  <h3>B · Sans IA, avec le script</h3>
   <p><a class="dl" href="/rules_rescue.py">Télécharger rules_rescue.py</a> Ta liste <code>cartes.json</code> se télécharge depuis l'onglet <a href="#explorer">Collection</a> (bouton « cartes.json »). Mets les deux fichiers dans le même dossier et ouvre un terminal dedans.</p>
   <p><b>Mac ou Linux :</b></p>
   <div class="cmds"><pre><code>pip install starknet-py
@@ -153,7 +141,7 @@ python rules_rescue.py check --target 0xADRESSE_DES_CARTES</code></pre></div>
   <p>puis les mêmes commandes <code>migrate</code> que ci-dessus. Alternative : <code>wsl --install</code>, redémarre, ouvre Ubuntu et suis la version Linux.</p>
   <p>Ce que fait chaque étape : <code>check</code> lit l'état du compte, <code>migrate</code> retrouve le compte depuis ta seed puis simule tout sans rien envoyer, et <code>--execute</code> envoie vraiment, après que tu as tapé OUI.</p>
 
-  <h3 class="sub">C · Sans rien installer</h3>
+  <h3>C · Sans rien installer</h3>
   <ol class="plain">
     <li>Vérifie dans l'onglet <a href="#explorer">Collection</a> où sont tes cartes.</li>
     <li>Écris au support Ready via <a href="https://help.ready.co/hc/en-us/requests/new" target="_blank" rel="noopener">help.ready.co</a> (produit « Ready X (previously Argent X) ») avec le modèle ci-dessous, puis confirme l'email qu'ils t'envoient.</li>
@@ -173,7 +161,71 @@ How can I make this legacy account appear in Ready, deploy it, and transfer my N
 I will never share my seed phrase.
 
 Thank you</pre>
+
+  <h3 class="sub">Problèmes rencontrés et solutions</h3>
+  <table class="mini">
+    <thead><tr><th>Symptôme</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td>Windows : <code>pywintypes.error: (126, 'LoadLibraryEx', …)</code> au lancement du script</td><td>La bibliothèque crypto de <code>starknet-py</code> ne se charge pas sous Windows. Lance le script dans Docker ou WSL (voir l'<a href="#outil">outil</a>).</td></tr>
+      <tr><td>Ready n'affiche que ton adresse actuelle</td><td>Normal : l'adresse des cartes est l'ancienne version (v0.3.0) du même compte. Le script la retrouve à partir de ta seed.</td></tr>
+      <tr><td>Argent Vault : « We're not yet able to send from Ethereum to Starknet »</td><td>Passe par une plateforme d'échange et retire les STRK sur le réseau Starknet.</td></tr>
+      <tr><td>« Mot de passe oublié » proposé pour restaurer une seed</td><td>Ne l'utilise pas sur ton wallet actuel : ça l'efface. Restaure dans un profil de navigateur vierge.</td></tr>
+      <tr><td>Envoi refusé pour frais insuffisants</td><td>Ajoute des STRK sur l'adresse des cartes et relance : le script reprend là où il s'est arrêté.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Statut (30/10/2026) : démarche suivie de bout en bout sur une collection de 252 exemplaires. Migration réelle réussie le 30/10/2026 : déploiement + 7 lots, 252 exemplaires arrivés sur Ready, ≈ 4,8 STRK de frais.</p>
+  </div>
+
+  <div class="wpanel" data-w="braavos" hidden>
+    <p class="wtag wait">Non testé</p>
+    <p>Si tu as fait la migration Rules avec <b>Braavos</b>, tes cartes sont sur ton compte Braavos de l'époque. Personne n'a encore fait ce parcours de bout en bout, donc ce qui suit est la méthode qui <b>devrait</b> marcher, sans garantie. Le script de l'onglet Argent X ne sert pas ici : Braavos calcule ses adresses autrement.</p>
+    <ol class="steps">
+      <li>
+        <h3>Retrouver l'adresse des cartes</h3>
+        <p>Colle ton ancien compte Rules dans la <a href="#explorer">Collection</a>, puis sur <a href="https://voyager.online" target="_blank" rel="noopener">Voyager</a> repère le gros transfert de cartes de fin 2023 : l'adresse de destination est ton compte Braavos de l'époque. Vérifie-la à son tour dans la Collection.</p>
+      </li>
+      <li>
+        <h3>Restaurer Braavos dans un profil vierge</h3>
+        <p>Installe l'extension Braavos dans un <b>profil de navigateur vierge</b> et restaure ta seed Braavos de l'époque. N'utilise pas « Mot de passe oublié » sur ton wallet actuel : ça l'efface. Braavos retrouve normalement tes anciens comptes et propose de les mettre à jour si besoin : accepte cette mise à jour.</p>
+      </li>
+      <li>
+        <h3>Ajouter quelques STRK</h3>
+        <p>Envoie 2 à 3 STRK sur l'adresse des cartes, depuis une plateforme d'échange (retrait sur le <b>réseau Starknet</b>) ou un autre wallet Starknet. Ils servent à payer les frais.</p>
+      </li>
+      <li>
+        <h3>Envoyer les cartes</h3>
+        <p>Depuis l'onglet NFT de Braavos, envoie les cartes vers ton wallet actuel. Si elles n'y sont pas affichées, passe par <a href="https://voyager.online/contract/0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f" target="_blank" rel="noopener">le contrat des cartes sur Voyager</a>, onglet « Write contract », Braavos connecté, fonction <code>batch_transfer_from</code>.</p>
+      </li>
+      <li>
+        <h3>Si l'adresse n'apparaît pas dans Braavos</h3>
+        <p>Écris au support Braavos depuis l'application (menu Aide) avec le message ci-dessous.</p>
+      </li>
+    </ol>
+    <div class="codehead"><span>Message au support Braavos</span><button type="button" class="copy" data-copy="support-bv">Copier le message</button></div>
+    <pre class="code" id="support-bv">Hello,
+
+In late 2023 I migrated my Rules (rules.art) trading cards to my Braavos account on Starknet.
+The cards (ERC-1155, contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f)
+are on this address:
+0x... (cards address)
+
+After restoring my seed, Braavos does not show this account. My current Braavos address is 0x...
+How can I access this legacy account and transfer my NFTs?
+I will never share my seed phrase.
+
+Thank you</pre>
+    <p class="hint">Pourquoi ça devrait marcher : contrairement au compte Rules d'origine, un compte Braavos est un wallet classique que Braavos sait encore mettre à jour, et l'envoi des cartes est un transfert normal. Ce qu'on ne sait pas : si un compte Braavos de 2023 jamais utilisé depuis se restaure et se met à jour sans souci. Si tu fais ce parcours, dis-le avec le bouton en bas de page : ça aidera les suivants.</p>
+  </div>
+
+  <div class="box okbox">
+    <h3>Ça a marché pour toi ?</h3>
+    <p class="okn">Ça a marché pour <b class="okcount">…</b> <span class="okword">utilisateurs</span>.</p>
+    <p>Colle l'adresse qui a envoyé ou reçu tes cartes. Le site vérifie sur la blockchain qu'un transfert de cartes Rules y a eu lieu ces 60 derniers jours, puis ajoute 1 au compteur.</p>
+    <form class="okf">
+      <input name="a" type="text" inputmode="text" spellcheck="false" autocomplete="off" placeholder="0x0… ton adresse" aria-label="Ton adresse Starknet" required>
+      <button type="submit">Ça a marché</button>
+    </form>
+    <p class="okmsg" role="status"></p>
+    <p class="hint">Ton adresse n'est pas gardée en clair : seule une empreinte est enregistrée, pour ne pas compter deux fois la même collection.</p>
+  </div>
 </section>
-
-
-
