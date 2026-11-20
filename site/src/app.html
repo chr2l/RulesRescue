@@ -69,6 +69,7 @@
 __GUIDE__
 
 __INFOS__
+<button type="button" class="okpill away" id="okpill" hidden><b class="okcount">…</b><span><span class="okword">utilisateurs</span> <span data-en="it worked for">pour qui ça a marché</span><small data-en="And for you? Tell us">Et pour toi ? Dis-le-nous</small></span></button>
 
 <footer class="wrap foot"><p data-en="Data read on Starknet through the Voyager explorer and a public RPC (cards contract 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Unofficial site, not affiliated with Rules Labs. HD images and animations: copies of their IPFS files (links stored in the contract); they belong to their artists.">Données lues sur Starknet via l'explorateur Voyager et un RPC public (contrat des cartes 0x05b456031650c1de9eec123d3e7d06a684d321a346d4a7cac9fd86c2b77cf70f). Site non officiel, sans lien avec Rules Labs. Images et animations HD : copies de leurs fichiers IPFS (liens inscrits dans le contrat) ; elles appartiennent à leurs artistes.</p><p class="finfo"><a href="#infos" data-en="Legal notice · About">Mentions légales · À propos</a></p><p class="langs"><a href="#" data-l="en">English</a> - <a href="#" data-l="fr">Français</a></p></footer>
 
@@ -522,6 +523,12 @@ function showOk(n) {
   document.querySelectorAll(".okcount").forEach(e => e.textContent = n.toLocaleString(LOC));
   document.querySelectorAll(".okword").forEach(e => e.textContent = n > 1 ? t("utilisateurs", "users") : t("utilisateur", "user"));
 }
+// Pastille du compteur, visible partout sur le tuto ; elle s'efface quand l'encadré du bas est à l'écran.
+$("okpill").onclick = () => { const b = $(LANG + "-ok"); if (b) { b.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); setTimeout(() => b.querySelector("input").focus({ preventScroll: true }), 500); } };
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => $("okpill").classList.toggle("away", e.isIntersecting)), { threshold: .25 });
+  if ($(LANG + "-ok")) io.observe($(LANG + "-ok"));
+} else $("okpill").classList.remove("away");
 let okLoaded = false;
 async function loadOk() {
   if (okLoaded) return; okLoaded = true;
@@ -558,6 +565,7 @@ function route() {
     else if (lastView !== "tuto") scrollTo(0, 0);
     loadOk();
   }
+  $("okpill").hidden = v !== "tuto";
   if (v === "infos") { const el = sec && $(LANG + "-" + sec); if (el) requestAnimationFrame(() => el.scrollIntoView()); else if (lastView !== "infos") scrollTo(0, 0); }
   lastView = v;
   if (typeof fitHero === "function") requestAnimationFrame(fitHero);
