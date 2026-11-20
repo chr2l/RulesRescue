@@ -293,7 +293,8 @@ function renderDex() {
   const nOwn = dex.filter(x => owned[x.m]).length;
   $("dexInfo").textContent = !ADMIN ? `${dex.length} ${t("modèles de cartes et de packs.", "card and pack models.")}` : items.length ? `${nOwn} / ${dex.length} ${t("modèles possédés dans la collection chargée", "models owned in the loaded collection")} · ${nB} badges` : `${dex.length} ${t("modèles de cartes et de packs. Charge une collection (onglet Collection) pour voir ce que tu possèdes.", "card and pack models. Load a collection (Collection tab) to see what you own.")}`;
   const lastS = t("dernière vente", "last sale");
-  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${!ADMIN ? "" : x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${x.r === "H" ? "holo" : x.r === "P" ? "plat" : ""}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async"></div>${(x.r !== "K" && tierOf(x.q)) || low[x.m] ? `<div class="cbadges">${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="${t("Palier", "Tier")} ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="${t("N° de série bas", "Low serial")} : n° ${low[x.m].slice().sort((a, b) => a - b).join(", ")}">${BADGE.hash}</span>` : ""}</div>` : ""}<div class="meta"><div class="mrow"><strong>${esc(x.a)}</strong>${x.q ? `<em class="pill">×${x.q}</em>` : ""}</div><span class="msub">${RN[x.r]} · S${x.s || "?"}</span>${x.p ? `<span class="price" title="${x.ns} ${t("ventes", "sales")} · ${t("moyenne", "average")} ${fmtEth(mModel(x.m).avg)} ETH">${lastS} ${fmtEth(x.p)} ETH · ${x.ns}×</span>` : ""}</div></div>`).join("");
+  $("dexGrid").innerHTML = L.map(x => `<div class="card dex ${!ADMIN ? "" : x.q ? "own" : "miss"}" data-id="${x.id}"><div class="frame ${frameCls(x)}"><img src="${hd[x.id] ? hd[x.id].img : "/img/" + x.id}" alt="${esc(x.a)}" loading="lazy" decoding="async"></div>${(x.r !== "K" && tierOf(x.q)) || low[x.m] ? `<div class="cbadges">${x.r !== "K" && tierOf(x.q) ? `<span class="tier" title="${t("Palier", "Tier")} ${tierOf(x.q)[2]}">${tierOf(x.q)[1]}</span>` : ""}${low[x.m] ? `<span class="lowser" title="${t("N° de série bas", "Low serial")} : n° ${low[x.m].slice().sort((a, b) => a - b).join(", ")}">${BADGE.hash}</span>` : ""}</div>` : ""}<div class="meta"><div class="mrow"><strong>${esc(x.a)}</strong>${x.q ? `<em class="pill">×${x.q}</em>` : ""}</div><span class="msub">${RN[x.r]} · S${x.s || "?"}</span>${x.p ? `<span class="price" title="${x.ns} ${t("ventes", "sales")} · ${t("moyenne", "average")} ${fmtEth(mModel(x.m).avg)} ETH">${lastS} ${fmtEth(x.p)} ETH · ${x.ns}×</span>` : ""}</div></div>`).join("");
+  glowPacks($("dexGrid"));
   $("dexCount").textContent = `${L.length} ${t("modèles", "models")}`;
   $("dexMarket").textContent = mkt ? t(`Prix : ${mkt.sales} ventes lues sur les marchés Rules${mkt.old ? `, dont ${mkt.old} sur l'ancien marché d'avant fin 2023` : ""}. « Dernière vente » = prix de la dernière vente d'un exemplaire de ce modèle, en ETH, à l'époque.`, `Prices: ${mkt.sales} sales read from the Rules markets${mkt.old ? `, ${mkt.old} of them on the pre-late-2023 market` : ""}. "Last sale" = price of the last sale of any copy of this model, in ETH, at the time.`) : "";
 }
@@ -378,7 +379,44 @@ const io = new IntersectionObserver(es => es.forEach(e => {
   const id = e.target.dataset.id; hdMeta(id).then(() => { upgrade(id); try { localStorage.setItem("rr_hd4", JSON.stringify(hd)); } catch (x) {} }).catch(() => {});
 }), { rootMargin: "400px" });
 const srcOf = d => hd[d.id] ? hd[d.id].img : "/img/" + d.id;
-function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : ""; }
+function frameCls(d) { return d.r === "H" ? "holo" : d.r === "P" ? "plat" : d.r === "W" ? "hallo" : d.r === "K" ? "pack" : ""; }
+// Glow des packs : couleur dominante de l'image (lue une fois depuis /img/, même origine), mémorisée.
+let PG = {}; try { PG = JSON.parse(localStorage.getItem("rr_pg1")) || {}; } catch (x) {}
+function packColor(id) {
+  if (PG[id]) return Promise.resolve(PG[id]);
+  return new Promise(ok => {
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const c = document.createElement("canvas"), W = 32, H = 45; c.width = W; c.height = H;
+        const g = c.getContext("2d", { willReadFrequently: true }); g.drawImage(im, 0, 0, W, H);
+        const px = g.getImageData(0, 0, W, H).data, bins = Array.from({ length: 24 }, () => [0, 0, 0, 0]);
+        for (let i = 0; i < px.length; i += 4) {
+          const r = px[i], gg = px[i + 1], b = px[i + 2], mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+          if (px[i + 3] < 128 || mx < 40) continue;
+          const sat = (mx - mn) / mx; if (sat < .25) continue;
+          const d = mx - mn, h = mx === r ? ((gg - b) / d + 6) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
+          const w = sat * mx, bin = bins[Math.floor(h * 4) % 24];
+          bin[0] += r * w; bin[1] += gg * w; bin[2] += b * w; bin[3] += w;
+        }
+        const best = bins.reduce((a, b) => b[3] > a[3] ? b : a);
+        if (!best[3]) return ok(null);
+        let rgb = best.slice(0, 3).map(v => v / best[3]); const k = 255 / Math.max(...rgb);
+        rgb = rgb.map(v => Math.round(v * k));
+        PG[id] = rgb.join(","); try { localStorage.setItem("rr_pg1", JSON.stringify(PG)); } catch (x) {}
+        ok(PG[id]);
+      } catch (x) { ok(null); }
+    };
+    im.onerror = () => ok(null);
+    im.src = "/img/" + id;
+  });
+}
+function glowPacks(root) {
+  root.querySelectorAll(".card[data-id] .frame.pack").forEach(f => {
+    const id = f.closest(".card").dataset.id;
+    packColor(id).then(c => { if (c) f.style.setProperty("--glow", c); });
+  });
+}
 const serialTxt = d => { const c = SCARCE[d.r]; return "#" + d.n + (c && c.max ? " / " + c.max : ""); };
 function render() {
   view = filtered();
@@ -391,7 +429,7 @@ function render() {
       <div class="meta"><div class="mrow"><strong>${esc(d.a)}</strong><em class="pill">${d.r === "K" ? "×" + d.q : "#" + d.n}</em></div><span class="msub">${RN[d.r]} · S${d.s}${d.r !== "K" && d.q > 1 ? " · ×" + d.q : ""}</span></div>
     </button>`).join("");
   $("count").textContent = `${view.length} ${state.kind === "pack" ? "packs" : t("cartes", "cards")}`;
-  document.querySelectorAll("#grid .card").forEach(c => io.observe(c));
+  document.querySelectorAll("#grid .card").forEach(c => io.observe(c)); glowPacks($("grid"));
   for (const id of ["kind"]) document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === state[id])));
 }
 $("fRar").addEventListener("change", () => { state.rars = checked("fRar"); render(); });
