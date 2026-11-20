@@ -47,7 +47,8 @@
     <h3 class="sub" id="fr-donnees">Données personnelles</h3>
     <ul>
       <li><b>Pas de compte, pas de suivi, pas de statistiques de visite, pas de publicité.</b></li>
-      <li>L'adresse Starknet que tu colles est envoyée au serveur du site, qui interroge l'explorateur Voyager et un nœud Starknet public. La réponse peut être gardée en cache quelques minutes pour aller plus vite ; elle n'est ni enregistrée dans une base ni liée à toi. Ces données sont de toute façon publiques sur la blockchain.</li>
+      <li>L'adresse Starknet que tu colles est envoyée au serveur du site, qui interroge l'explorateur Voyager et un nœud Starknet public. La réponse peut être gardée en cache quelques minutes pour aller plus vite ; elle n'est ni enregistrée dans une base ni liée à toi (sauf l'empreinte du bouton « Ça a marché », ci-dessous). Ces données sont de toute façon publiques sur la blockchain.</li>
+      <li>Si tu utilises le bouton « Ça a marché » du tuto, le site vérifie sur la blockchain qu'un transfert de cartes a eu lieu sur l'adresse, puis enregistre seulement un compteur et une empreinte de l'adresse (SHA-256), jamais l'adresse en clair, pour ne pas compter deux fois la même collection.</li>
       <li>Comme tout hébergeur, Cloudflare traite des données techniques (adresse IP, navigateur) pour faire fonctionner et protéger le site.</li>
       <li>Les polices de caractères sont chargées depuis Google Fonts : ton navigateur contacte donc les serveurs de Google.</li>
     </ul>
@@ -132,7 +133,8 @@
     <h3 class="sub" id="en-donnees">Personal data</h3>
     <ul>
       <li><b>No account, no tracking, no visitor analytics, no ads.</b></li>
-      <li>The Starknet address you paste is sent to the site's server, which queries the Voyager explorer and a public Starknet node. The answer may be cached for a few minutes to speed things up; it is not stored in a database nor linked to you. This data is public on the blockchain anyway.</li>
+      <li>The Starknet address you paste is sent to the site's server, which queries the Voyager explorer and a public Starknet node. The answer may be cached for a few minutes to speed things up; it is not stored in a database nor linked to you (except the "It worked" fingerprint, below). This data is public on the blockchain anyway.</li>
+      <li>If you use the "It worked" button in the guide, the site checks on the blockchain that a card transfer happened on the address, then stores only a counter and a fingerprint of the address (SHA-256), never the address in clear, so the same collection is not counted twice.</li>
       <li>Like any host, Cloudflare processes technical data (IP address, browser) to run and protect the site.</li>
       <li>Fonts are loaded from Google Fonts, so your browser contacts Google's servers.</li>
     </ul>
