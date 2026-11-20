@@ -208,7 +208,7 @@ function wallets() {
     const f = w.features || {}, chains = w.chains || [];
     if (!chains.some(c => String(c).startsWith("starknet")) && !Object.keys(f).some(k => k.startsWith("starknet:"))) continue;
     const m = [], api = f["starknet:walletApi"];
-    if (f["standard:connect"]) m.push(async () => { const r = await f["standard:connect"].connect(); return firstAddr(r && r.accounts) || firstAddr(w.accounts); });
+    if (f["standard:connect"]) m.push(async () => { const r = await f["standard:connect"].connect({ silent: false }); return firstAddr(r && r.accounts) || firstAddr(w.accounts); });
     if (api && api.request) m.push(async () => firstAddr(await api.request({ type: "wallet_requestAccounts" })));
     out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), m,
       watch(cb) { const ev = f["standard:events"]; if (ev) try { ev.on("change", c => c && c.accounts && cb(firstAddr(c.accounts))); } catch (x) {} } });
