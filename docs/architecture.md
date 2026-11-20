@@ -15,8 +15,8 @@ navigateur ──► Worker (rulesrescue.elie.place) ──► API publique Voya
 | Fichier | Contenu |
 |---|---|
 | `site/src/head.html` | Styles (palette et mise en page façon Rules, violet `#9f04dc`). |
-| `site/src/app.html` | Structure de la page et tout le JavaScript. Navigation par ancre : `#explorer`, `#dex`, `#tuto`, `#outil`, `#infos` (et `#infos/<partie>`). |
-| `site/src/guide.html`, `guide.en.html` | Guide de récupération et outil, en français et en anglais. |
+| `site/src/app.html` | Structure de la page et tout le JavaScript. Navigation par ancre : `#explorer`, `#dex`, `#tuto` (et `#tuto/rules|argent|braavos` ; l'ancien `#outil` mène à l'outil du tuto), `#infos` (et `#infos/<partie>`). |
+| `site/src/guide.html`, `guide.en.html` | Tuto + outil fusionnés, un panneau par wallet de migration (Rules, Argent X, Braavos), et le bloc « Ça a marché ? » ; en français et en anglais. |
 | `site/src/infos.html` | Mentions légales et à propos, avec sommaire latéral. |
 | `site/src/worker.template.js` | Le Worker. |
 
@@ -36,6 +36,7 @@ Langues : français par défaut, anglais avec `?lang=en` (attributs `data-en*` d
 | `/api/token?id=` | Historique d'un exemplaire. |
 | `/api/dex` | Les 168 modèles (KV, clé `dex`). |
 | `/api/cdx` | Anciennes pages de rules.art (Wayback Machine). |
+| `/api/ok` | Compteur « Ça a marché ? » : `GET` donne le nombre ; `POST {"address"}` vérifie via Voyager un transfert de cartes Rules de moins de 60 jours sur l'adresse, puis ajoute 1 (KV `SITE`, clés `okcount` et `ok:<empreinte SHA-256>`, une fois par collection). |
 | `/img/{id}`, `/ipfs/{cid}` | Images relayées et mises en cache. |
 | `/rules_rescue.py` | Le script (fichier statique, servi en téléchargement). |
 | `/moi` | Profil privé de l'administrateur, derrière Cloudflare Access. |

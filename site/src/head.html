@@ -191,6 +191,26 @@ body { background-image: linear-gradient(180deg, rgba(159,4,220,.08) 0, rgba(159
 .sub { font-size: 20px; margin: 34px 0 10px; }
 .plain { padding-left: 20px; display: grid; gap: 8px; max-width: 68ch; }
 .doc .code { white-space: pre-wrap; }
+/* Tuto : choix du wallet, étiquette d'état, « ça a marché ? » */
+.doc .seg.tabs.wsel { justify-content: flex-start; margin: 8px 0 14px; gap: 0 24px; }
+.wpanel { margin-top: 22px; }
+.wtag { display: inline-block; font: 700 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; padding: 6px 9px; border-radius: 6px; margin: 0 0 12px; }
+.wtag.ok { background: var(--accent); color: var(--chip-fg); }
+.wtag.wait { border: 1px solid var(--accent); color: var(--fg); }
+.okbox { margin-top: 44px; border-left: 4px solid var(--accent); }
+.okn { font-size: 18px; margin: 0 0 8px; }
+.okn b { font-family: var(--display); font-weight: 400; font-size: 30px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.okf { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+.okf input { flex: 1 1 260px; min-width: 0; font: 500 14px/1 var(--mono); color: var(--fg); background: var(--bg); border: 1px solid var(--line); padding: 11px 12px; border-radius: 6px; }
+.okf button { font: 700 14px/1 var(--body); background: var(--accent); color: var(--chip-fg); border: 0; padding: 11px 16px; border-radius: 6px; cursor: pointer; }
+.okf button:disabled { opacity: .6; cursor: wait; }
+.okmsg { font-family: var(--mono); font-size: 13px; margin: 0 0 8px; min-height: 1.2em; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .doc .seg.tabs.wsel { position: static; flex-direction: column; gap: 0; margin-inline: 0; padding: 0; border: 0; }
+  .doc .seg.tabs.wsel button { width: 100%; text-align: left; min-height: 48px; padding: 0 12px; margin: 0; border: 0; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; }
+  .doc .seg.tabs.wsel button[aria-pressed="true"] { border-bottom-color: var(--line); border-left-color: var(--accent); background: var(--accent-soft) !important; }
+  .okf button { min-height: 44px; }
+}
 .empty { max-width: 65ch; font-family: var(--body); line-height: 1.6; }
 
 /* Style Rules (ruleslabs/interface, ISC) : même placement que l'app React d'origine */

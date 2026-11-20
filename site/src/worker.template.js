@@ -217,6 +217,47 @@ async function elieAdmin(req) {
   } catch (e) { return false; }
 }
 
+// « Ça a marché ? » : un compteur dans le KV (clé « okcount »). Avant de compter, on vérifie sur la blockchain
+// (Voyager) qu'un transfert de cartes Rules a eu lieu sur l'adresse ces OK_DAYS derniers jours. Aucune adresse
+// n'est gardée en clair : seulement une empreinte SHA-256 (clés « ok:… »), posée aussi sur l'autre bout du
+// transfert, pour qu'une même collection (départ + arrivée) ne compte qu'une fois.
+const OK_DAYS = 60;
+async function fingerprint(addr) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("rules-rescue-ok:" + addr));
+  return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function recentCardPeers(addr) {
+  const me = BigInt(addr), since = Date.now() / 1000 - OK_DAYS * 86400, peers = new Set();
+  let path = `/nft-transfers?contract_address=${addr}&type=erc1155&limit=100`, pages = 0, found = false;
+  while (path && pages++ < 5) {
+    const r = await fetch("https://voyager.online/api" + path, { headers: H }); // sans cache : le transfert peut dater d'une minute
+    if (!r.ok) throw new Error("voyager " + r.status);
+    const j = await r.json();
+    for (const t of j.items || []) {
+      if (BigInt(t.nftContractAddress) !== BigInt(CONTRACT) || !(Number(t.timestamp) >= since)) continue;
+      const from = BigInt(t.fromAddress), to = BigInt(t.toAddress);
+      if (from === 0n || (from !== me && to !== me)) continue;
+      found = true; peers.add(norm(from === me ? t.toAddress : t.fromAddress));
+    }
+    if (!(j.items || []).length) break;
+    path = j.pagination && j.pagination.next ? j.pagination.next : null;
+  }
+  return found ? peers : null;
+}
+const okCount = async env => Number(await env.SITE.get("okcount")) || 0;
+async function okReport(env, raw) {
+  const addr = norm(raw), key = "ok:" + await fingerprint(addr);
+  if (await env.SITE.get(key)) return { ok: true, already: true, n: await okCount(env) };
+  const peers = await recentCardPeers(addr);
+  if (!peers) return { ok: false, reason: "none", n: await okCount(env) };
+  for (const p of peers) if (await env.SITE.get("ok:" + await fingerprint(p))) { await env.SITE.put(key, "1"); return { ok: true, already: true, n: await okCount(env) }; }
+  const n = await okCount(env) + 1;
+  await env.SITE.put("okcount", String(n));
+  await env.SITE.put(key, "1");
+  for (const p of [...peers].slice(0, 20)) await env.SITE.put("ok:" + await fingerprint(p), "1");
+  return { ok: true, n };
+}
+
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
 export default {
@@ -252,6 +293,14 @@ export default {
         const id = u.searchParams.get("id") || "";
         if (!/^\d{1,80}$/.test(id)) return json({ error: "id invalide" }, 400);
         return new Response(JSON.stringify(await token(id)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...CORS } });
+      }
+      if (u.pathname === "/api/ok") {
+        if (req.method === "POST") {
+          let raw = ""; try { raw = String((await req.json()).address || ""); } catch (e) {}
+          if (!/^0x[0-9a-fA-F]{1,64}$/.test(raw)) return json({ error: "adresse invalide" }, 400);
+          return json(await okReport(env, raw));
+        }
+        return json({ n: await okCount(env) });
       }
       if (u.pathname === "/api/dex") return new Response(await env.SITE.get("dex") || "[]", { headers: { "content-type": "application/json", "cache-control": "public, max-age=3600", ...CORS } });
       if (u.pathname === "/api/meta") {
