@@ -191,31 +191,54 @@ async function load(addr) {
 // Connexion de wallet (Ready/Argent X, Braavos…) en lecture seule : on demande seulement l'adresse du compte,
 // jamais de signature ni de transaction. Rien n'est enregistré : l'adresse sert juste à afficher la collection.
 const WNAME = { argentX: "Ready (Argent X)", braavos: "Braavos" };
+// Deux façons dont les wallets s'annoncent : l'ancienne (objet window.starknet_*) et la « wallet standard »
+// (événements wallet-standard:*), utilisée par les versions récentes de Ready/Argent X et Braavos.
+const STD = [];
+const stdApi = { register(...ws) { for (const w of ws) if (w && !STD.includes(w)) STD.push(w); return () => {}; } };
+addEventListener("wallet-standard:register-wallet", e => { try { e.detail(stdApi); } catch (x) {} });
+try { dispatchEvent(new CustomEvent("wallet-standard:app-ready", { detail: stdApi })); } catch (x) {}
+const okIcon = i => typeof i === "string" && /^data:image\/(svg\+xml|png|webp|jpeg)/.test(i) ? i : "";
+const firstAddr = acc => { const x = acc && acc[0]; return normAddr(String((x && typeof x === "object" ? x.address : x) || "")); };
+const fam = k => /argent|ready/.test(k) ? "argent" : /braavos/.test(k) ? "braavos" : k || "?";
 function wallets() {
-  const seen = new Set(), out = [];
-  for (const k of Object.keys(window)) {
+  const out = [];
+  for (const w of STD) {
+    const f = w.features || {}, chains = w.chains || [];
+    if (!chains.some(c => String(c).startsWith("starknet")) && !Object.keys(f).some(k => k.startsWith("starknet:"))) continue;
+    out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), async connect() {
+      if (f["standard:connect"]) { const r = await f["standard:connect"].connect(); const a = firstAddr(r && r.accounts); if (a) return a; }
+      const api = f["starknet:walletApi"];
+      if (api && api.request) return firstAddr(await api.request({ type: "wallet_requestAccounts" }));
+      return firstAddr(w.accounts);
+    }, watch(cb) { const ev = f["standard:events"]; if (ev) try { ev.on("change", c => c && c.accounts && cb(firstAddr(c.accounts))); } catch (x) {} } });
+  }
+  const seen = new Set();
+  for (const k of Object.getOwnPropertyNames(window)) {
     if (!k.startsWith("starknet")) continue;
     let w; try { w = window[k]; } catch (e) { continue; }
     if (!w || typeof w !== "object" || seen.has(w) || !(typeof w.request === "function" || typeof w.enable === "function")) continue;
-    if (k === "starknet" && out.some(o => o.id && o.id === w.id)) continue;
-    seen.add(w); out.push(w);
+    seen.add(w);
+    const name = WNAME[w.id] || w.name || "Wallet", key = String(w.name || w.id || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (out.some(o => fam(o.key) === fam(key))) continue; // déjà vu par la wallet standard
+    out.push({ key, name, icon: okIcon(w.icon), async connect() {
+      let acc = null;
+      if (typeof w.request === "function") { try { acc = await w.request({ type: "wallet_requestAccounts" }); } catch (e) { if (typeof w.enable !== "function") throw e; } }
+      if (!acc || !acc.length) acc = await w.enable();
+      return firstAddr(acc) || normAddr(String(w.selectedAddress || (w.account && w.account.address) || ""));
+    }, watch(cb) { if (typeof w.on === "function") try { w.on("accountsChanged", x => cb(firstAddr(x))); } catch (e) {} } });
   }
-  return out.filter((w, i) => !w.id || out.findIndex(o => o.id === w.id) === i);
+  return out.filter((w, i) => out.findIndex(o => o.key && o.key === w.key) === i || !w.key);
 }
-const wName = w => WNAME[w.id] || w.name || "Wallet";
 async function wConnect(w) {
   const msg = $("wmsg");
   $("wpick").hidden = true;
   msg.textContent = t("Accepte la connexion dans ton wallet (aucune signature ne sera demandée)…", "Approve the connection in your wallet (no signature will be asked)…");
   try {
-    let acc = null;
-    if (typeof w.request === "function") { try { acc = await w.request({ type: "wallet_requestAccounts" }); } catch (e) { if (typeof w.enable !== "function") throw e; } }
-    if (!acc || !acc.length) acc = await w.enable();
-    const a = normAddr(String((acc && acc[0]) || w.selectedAddress || (w.account && w.account.address) || ""));
+    const a = await w.connect();
     if (!a) throw new Error("no account");
     msg.textContent = "";
-    showWallet(a, wName(w));
-    if (typeof w.on === "function") try { w.on("accountsChanged", x => { const b = x && x[0] && normAddr(String(x[0])); if (b && b !== loaded) showWallet(b, wName(w)); }); } catch (e) {}
+    showWallet(a, w.name);
+    w.watch(b => { if (b && MEA && b !== MEA.a) showWallet(b, w.name); });
   } catch (e) {
     msg.textContent = t("Connexion annulée ou refusée par le wallet. Tu peux aussi coller ton adresse ci-dessus.", "Connection cancelled or refused by the wallet. You can also paste your address above.");
   }
@@ -224,8 +247,13 @@ function showWallet(a, name) {
   if (ADMIN && ADMIN.a === a) setMe({ a, n: ADMIN.n }); else setMe({ a, n: t("Mon wallet", "My wallet") + " · " + name, nav: t("Mon wallet", "My wallet") });
   if (location.hash === "#moi") route(); else location.hash = "#moi";
 }
-$("wbtn").onclick = () => {
-  const ws = wallets(), msg = $("wmsg"), pick = $("wpick");
+$("wbtn").onclick = async () => {
+  const msg = $("wmsg"), pick = $("wpick");
+  let ws = wallets();
+  if (!ws.length) { // une extension peut s'annoncer un peu après le chargement
+    try { dispatchEvent(new CustomEvent("wallet-standard:app-ready", { detail: stdApi })); } catch (x) {}
+    await new Promise(r => setTimeout(r, 400)); ws = wallets();
+  }
   if (!ws.length) {
     pick.hidden = true;
     msg.innerHTML = t(`Aucun wallet Starknet détecté dans ce navigateur. Installe <a href="https://www.ready.co" target="_blank" rel="noopener">Ready (Argent X)</a> ou <a href="https://braavos.app" target="_blank" rel="noopener">Braavos</a>, ou colle simplement ton adresse ci-dessus. Sur téléphone, ouvre ce site dans le navigateur intégré de ton wallet.`,
@@ -237,8 +265,8 @@ $("wbtn").onclick = () => {
   pick.innerHTML = "";
   for (const w of ws) {
     const b = document.createElement("button"); b.type = "button"; b.className = "wbtn";
-    if (typeof w.icon === "string" && /^data:image\/(svg\+xml|png)/.test(w.icon)) { const i = new Image(); i.src = w.icon; i.alt = ""; b.append(i); }
-    b.append(wName(w)); b.onclick = () => wConnect(w); pick.append(b);
+    if (w.icon) { const i = new Image(); i.src = w.icon; i.alt = ""; b.append(i); }
+    b.append(w.name); b.onclick = () => wConnect(w); pick.append(b);
   }
   pick.hidden = false;
 };
