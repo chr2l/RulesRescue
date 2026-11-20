@@ -51,8 +51,8 @@
       <li>Le site demande à l'extension de ton wallet (Ready/Argent X, Braavos…) l'<b>adresse publique</b> de ton compte, et rien d'autre. Tu acceptes ou refuses dans le wallet.</li>
       <li><b>Aucune signature, aucune transaction, aucune autorisation sur tes cartes</b> n'est demandée, et le site n'a aucun moyen d'en envoyer. Ta seed et ta clé privée restent dans ton wallet.</li>
       <li>L'adresse sert à afficher ta collection (« Mon profil »), exactement comme une adresse collée à la main (voir <a href="#infos/donnees">Données personnelles</a>).</li>
-      <li>Le site ne l'enregistre <b>nulle part</b> : ni cookie, ni stockage local, ni base de données. Elle reste dans la page ouverte et disparaît quand tu la recharges ou la fermes.</li>
-      <li>Ton wallet peut, lui, retenir que ce site est « connecté ». Pour l'oublier, retire rulesrescue.elie.place de la liste des sites connectés dans les réglages de ton wallet.</li>
+      <li>Le site n'enregistre <b>jamais ton adresse</b> : ni cookie, ni base de données. Pour te reconnecter tout seul quand tu reviens, il garde seulement dans le stockage local de ton navigateur le nom du wallet utilisé (<code>rr_wallet</code>, par exemple « argent »). Au retour, il redemande l'adresse à ton wallet sans ouvrir de fenêtre, et seulement si tu as déjà autorisé le site.</li>
+      <li>Le bouton « Déconnecter le wallet » (sur ton profil) efface ce réglage et l'adresse affichée. Ton wallet peut, lui, retenir que ce site est « connecté » : pour l'oublier complètement, retire rulesrescue.elie.place de la liste des sites connectés dans les réglages de ton wallet.</li>
     </ul>
 
     <h3 class="sub" id="fr-donnees">Données personnelles</h3>
@@ -68,7 +68,7 @@
     <p>Tu peux exercer tes droits (accès, effacement, opposition…) via <a href="#infos/contact">Contact</a>, ou saisir la <a href="https://www.cnil.fr" rel="noopener">CNIL</a>.</p>
 
     <h3 class="sub" id="fr-cookies">Cookies et stockage</h3>
-    <p>Le site ne dépose <b>aucun cookie</b>. Il garde seulement la langue choisie dans le stockage local de ton navigateur (<code>rr_lang</code>), si tu changes de langue. La connexion de wallet n'ajoute aucun cookie ni stockage. Aucun bandeau n'est donc nécessaire.</p>
+    <p>Le site ne dépose <b>aucun cookie</b>. Il garde seulement la langue choisie dans le stockage local de ton navigateur (<code>rr_lang</code>), si tu changes de langue. Si tu connectes un wallet, il garde aussi le nom de ce wallet (<code>rr_wallet</code>, jamais ton adresse) pour te reconnecter au retour ; « Déconnecter le wallet » l'efface. Ces réglages servent seulement à faire marcher ce que tu as demandé. Aucun bandeau n'est donc nécessaire.</p>
 
     <h3 class="sub" id="fr-securite">Sécurité de ton wallet</h3>
     <ul>
@@ -152,8 +152,8 @@
       <li>The site asks your wallet extension (Ready/Argent X, Braavos…) for your account's <b>public address</b>, and nothing else. You approve or refuse in the wallet.</li>
       <li><b>No signature, no transaction, no permission over your cards</b> is requested, and the site has no way to send any. Your seed and private key stay in your wallet.</li>
       <li>The address is used to show your collection ("My profile"), exactly like an address pasted by hand (see <a href="#infos/donnees">Personal data</a>).</li>
-      <li>The site stores it <b>nowhere</b>: no cookie, no local storage, no database. It stays in the open page and is gone when you reload or close it.</li>
-      <li>Your wallet itself may remember that this site is "connected". To make it forget, remove rulesrescue.elie.place from the connected sites in your wallet's settings.</li>
+      <li>The site <b>never stores your address</b>: no cookie, no database. To reconnect you automatically when you come back, it only keeps the name of the wallet you used in your browser's local storage (<code>rr_wallet</code>, e.g. "argent"). On your return it asks your wallet for the address again without opening any window, and only if you already approved the site.</li>
+      <li>The "Disconnect wallet" button (on your profile) clears this setting and the address shown. Your wallet itself may remember that this site is "connected": to make it forget completely, remove rulesrescue.elie.place from the connected sites in your wallet's settings.</li>
     </ul>
 
     <h3 class="sub" id="en-donnees">Personal data</h3>
@@ -169,7 +169,7 @@
     <p>You can exercise your rights (access, erasure, objection…) through <a href="#infos/contact">Contact</a>, or complain to the French regulator, the <a href="https://www.cnil.fr" rel="noopener">CNIL</a>.</p>
 
     <h3 class="sub" id="en-cookies">Cookies and storage</h3>
-    <p>The site sets <b>no cookies</b>. It only keeps your chosen language in your browser's local storage (<code>rr_lang</code>), if you switch language. Connecting a wallet adds no cookie or storage. No banner is needed.</p>
+    <p>The site sets <b>no cookies</b>. It only keeps your chosen language in your browser's local storage (<code>rr_lang</code>), if you switch language. If you connect a wallet, it also keeps that wallet's name (<code>rr_wallet</code>, never your address) to reconnect you on your return; "Disconnect wallet" clears it. These settings only make the features you asked for work. No banner is needed.</p>
 
     <h3 class="sub" id="en-securite">Wallet safety</h3>
     <ul>
