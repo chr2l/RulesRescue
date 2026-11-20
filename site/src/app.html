@@ -200,17 +200,18 @@ try { dispatchEvent(new CustomEvent("wallet-standard:app-ready", { detail: stdAp
 const okIcon = i => typeof i === "string" && /^data:image\/(svg\+xml|png|webp|jpeg)/.test(i) ? i : "";
 const firstAddr = acc => { const x = acc && acc[0]; return normAddr(String((x && typeof x === "object" ? x.address : x) || "")); };
 const fam = k => /argent|ready/.test(k) ? "argent" : /braavos/.test(k) ? "braavos" : k || "?";
+// Chaque wallet a une ou plusieurs méthodes de connexion ; si la première reste sans réponse,
+// le bouton « Réessayer » passe à la suivante (certaines versions n'ouvrent leur fenêtre qu'avec l'une d'elles).
 function wallets() {
   const out = [];
   for (const w of STD) {
     const f = w.features || {}, chains = w.chains || [];
     if (!chains.some(c => String(c).startsWith("starknet")) && !Object.keys(f).some(k => k.startsWith("starknet:"))) continue;
-    out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), async connect() {
-      if (f["standard:connect"]) { const r = await f["standard:connect"].connect(); const a = firstAddr(r && r.accounts); if (a) return a; }
-      const api = f["starknet:walletApi"];
-      if (api && api.request) return firstAddr(await api.request({ type: "wallet_requestAccounts" }));
-      return firstAddr(w.accounts);
-    }, watch(cb) { const ev = f["standard:events"]; if (ev) try { ev.on("change", c => c && c.accounts && cb(firstAddr(c.accounts))); } catch (x) {} } });
+    const m = [], api = f["starknet:walletApi"];
+    if (f["standard:connect"]) m.push(async () => { const r = await f["standard:connect"].connect(); return firstAddr(r && r.accounts) || firstAddr(w.accounts); });
+    if (api && api.request) m.push(async () => firstAddr(await api.request({ type: "wallet_requestAccounts" })));
+    out.push({ key: String(w.name || "").toLowerCase().replace(/[^a-z]/g, ""), name: w.name || "Wallet", icon: okIcon(w.icon), m,
+      watch(cb) { const ev = f["standard:events"]; if (ev) try { ev.on("change", c => c && c.accounts && cb(firstAddr(c.accounts))); } catch (x) {} } });
   }
   const seen = new Set();
   for (const k of Object.getOwnPropertyNames(window)) {
@@ -219,27 +220,37 @@ function wallets() {
     if (!w || typeof w !== "object" || seen.has(w) || !(typeof w.request === "function" || typeof w.enable === "function")) continue;
     seen.add(w);
     const name = WNAME[w.id] || w.name || "Wallet", key = String(w.name || w.id || "").toLowerCase().replace(/[^a-z]/g, "");
-    if (out.some(o => fam(o.key) === fam(key))) continue; // déjà vu par la wallet standard
-    out.push({ key, name, icon: okIcon(w.icon), async connect() {
-      let acc = null;
-      if (typeof w.request === "function") { try { acc = await w.request({ type: "wallet_requestAccounts" }); } catch (e) { if (typeof w.enable !== "function") throw e; } }
-      if (!acc || !acc.length) acc = await w.enable();
-      return firstAddr(acc) || normAddr(String(w.selectedAddress || (w.account && w.account.address) || ""));
-    }, watch(cb) { if (typeof w.on === "function") try { w.on("accountsChanged", x => cb(firstAddr(x))); } catch (e) {} } });
+    const m = [], cur = () => normAddr(String(w.selectedAddress || (w.account && w.account.address) || ""));
+    if (typeof w.request === "function") m.push(async () => firstAddr(await w.request({ type: "wallet_requestAccounts" })) || cur());
+    if (typeof w.enable === "function") m.push(async () => firstAddr(await w.enable({ starknetVersion: "v5" })) || cur());
+    const same = out.find(o => fam(o.key) === fam(key));
+    if (same) { same.m.push(...m); continue; } // même wallet déjà vu par la wallet standard : méthodes de secours
+    out.push({ key, name, icon: okIcon(w.icon), m, watch(cb) { if (typeof w.on === "function") try { w.on("accountsChanged", x => cb(firstAddr(x))); } catch (e) {} } });
   }
-  return out.filter((w, i) => out.findIndex(o => o.key && o.key === w.key) === i || !w.key);
+  return out.filter(w => w.m.length).filter((w, i, l) => !w.key || l.findIndex(o => o.key === w.key) === i);
 }
-async function wConnect(w) {
-  const msg = $("wmsg");
+let wTry = 0;
+async function wConnect(w, i = 0) {
+  const msg = $("wmsg"), my = ++wTry;
   $("wpick").hidden = true;
   msg.textContent = t("Accepte la connexion dans ton wallet (aucune signature ne sera demandée)…", "Approve the connection in your wallet (no signature will be asked)…");
+  // Rien au bout de 5 s : la demande attend souvent dans l'extension (icône du wallet dans la barre du navigateur).
+  const slow = setTimeout(() => {
+    if (my !== wTry) return;
+    msg.innerHTML = t(`La fenêtre du wallet ne s'est pas ouverte ? Clique sur l'icône de ton wallet dans la barre du navigateur : la demande y attend peut-être, ou il faut d'abord le déverrouiller.`, `The wallet window did not open? Click your wallet's icon in the browser toolbar: the request may be waiting there, or it must be unlocked first.`)
+      + (i + 1 < w.m.length ? ` <button type="button" class="linkish" id="wretry">${t("Réessayer autrement", "Try another way")}</button>` : "");
+    const r = $("wretry"); if (r) r.onclick = () => wConnect(w, i + 1);
+  }, 5000);
   try {
-    const a = await w.connect();
-    if (!a) throw new Error("no account");
+    let a = null, err = null;
+    for (let k = i; k < w.m.length && !a; k++) { try { a = await w.m[k](); } catch (e) { err = e; } if (my !== wTry) return; }
+    clearTimeout(slow);
+    if (!a) throw err || new Error("no account");
     msg.textContent = "";
     showWallet(a, w.name);
     w.watch(b => { if (b && MEA && b !== MEA.a) showWallet(b, w.name); });
   } catch (e) {
+    clearTimeout(slow); if (my !== wTry) return;
     msg.textContent = t("Connexion annulée ou refusée par le wallet. Tu peux aussi coller ton adresse ci-dessus.", "Connection cancelled or refused by the wallet. You can also paste your address above.");
   }
 }
